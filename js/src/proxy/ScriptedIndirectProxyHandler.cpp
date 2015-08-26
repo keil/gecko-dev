@@ -562,3 +562,52 @@ js::proxy_createFunction(JSContext* cx, unsigned argc, Value* vp)
     args.rval().setObject(*proxy);
     return true;
 }
+
+bool
+js::tproxy_createFunction(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+    if (args.length() < 2) {
+        JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_MORE_ARGS_NEEDED,
+                             "createFunction", "1", "");
+        return false;
+    }
+    RootedObject handler(cx, NonNullObject(cx, args[0]));
+    if (!handler)
+        return false;
+    RootedObject proto(cx, args.callee().global().getOrCreateFunctionPrototype(cx));
+    if (!proto)
+        return false;
+
+    RootedObject call(cx, ValueToCallable(cx, args[1], args.length() - 2));
+    if (!call)
+        return false;
+    RootedObject construct(cx, nullptr);
+    if (args.length() > 2) {
+        construct = ValueToCallable(cx, args[2], args.length() - 3);
+        if (!construct)
+            return false;
+    } else {
+        construct = call;
+    }
+
+    // Stash the call and construct traps on a holder object that we can stick
+    // in a slot on the proxy.
+    RootedObject ccHolder(cx, JS_NewObjectWithGivenProto(cx, Jsvalify(&CallConstructHolder),
+                                                         nullptr));
+    if (!ccHolder)
+        return false;
+    ccHolder->as<NativeObject>().setReservedSlot(0, ObjectValue(*call));
+    ccHolder->as<NativeObject>().setReservedSlot(1, ObjectValue(*construct));
+
+    RootedValue priv(cx, ObjectValue(*handler));
+    JSObject* proxy =
+        NewProxyObject(cx, &CallableScriptedIndirectProxyHandler::singleton,
+                       priv, proto);
+    if (!proxy)
+        return false;
+    proxy->as<ProxyObject>().setExtra(0, ObjectValue(*ccHolder));
+
+    args.rval().setObject(*proxy);
+    return true;
+}

@@ -1038,7 +1038,12 @@ EqualGivenSameType(JSContext* cx, HandleValue lval, HandleValue rval, bool* equa
         return true;
     }
     if (lval.isGCThing()) {  // objects or symbols
-        *equal = (lval.toGCThing() == rval.toGCThing());
+        //*equal = (lval.toGCThing() == rval.toGCThing());
+
+        JSObject* l = GetIdentityObject(&lval.toObject());
+        JSObject* r = GetIdentityObject(&rval.toObject());
+        *equal = l == r;
+
         return true;
     }
     *equal = lval.get().payloadAsRawUint32() == rval.get().payloadAsRawUint32();

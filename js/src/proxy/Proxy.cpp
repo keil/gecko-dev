@@ -751,6 +751,10 @@ const Class js::ProxyObject::class_ =
 
 const Class* const js::ProxyClassPtr = &js::ProxyObject::class_;
 
+// For Transparent Proxy
+const Class js::TProxyObject::class_ = TPROXY_CLASS_DEF("TProxy", JSCLASS_HAS_CACHED_PROTO(JSProto_TProxy));
+const Class* const js::TProxyClassPtr = &js::TProxyObject::class_;
+
 JS_FRIEND_API(JSObject*)
 js::NewProxyObject(JSContext* cx, const BaseProxyHandler* handler, HandleValue priv, JSObject* proto_,
                    const ProxyOptions& options)
@@ -761,6 +765,18 @@ js::NewProxyObject(JSContext* cx, const BaseProxyHandler* handler, HandleValue p
     }
 
     return ProxyObject::New(cx, handler, priv, TaggedProto(proto_), options);
+}
+
+JS_FRIEND_API(JSObject*)
+js::NewTransparentProxyObject(JSContext* cx, const BaseProxyHandler* handler, HandleValue priv, JSObject* proto_,
+                   const ProxyOptions& options)
+{
+    if (options.lazyProto()) {
+        MOZ_ASSERT(!proto_);
+        proto_ = TaggedProto::LazyProto;
+    }
+
+    return TProxyObject::New(cx, handler, priv, TaggedProto(proto_), options);
 }
 
 void
@@ -800,4 +816,42 @@ js::InitProxyClass(JSContext* cx, HandleObject obj)
 
     global->setConstructor(JSProto_Proxy, ObjectValue(*ctor));
     return ctor;
+}
+
+JS_FRIEND_API(JSObject*)
+js::InitTProxyClass(JSContext* cx, HandleObject obj)
+{
+    static const JSFunctionSpec static_methods[] = {
+        JS_FN("create",         proxy_create,          2, 0),
+        JS_FN("createFunction", tproxy_createFunction,  3, 0),
+        JS_FN("revocable",      proxy_revocable,       2, 0),
+        JS_FS_END
+    };
+
+    Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
+    RootedFunction ctor(cx);
+    ctor = global->createConstructor(cx, tProxy, cx->names().TProxy, 2);
+    if (!ctor)
+        return nullptr;
+
+    if (!JS_DefineFunctions(cx, ctor, static_methods))
+        return nullptr;
+    if (!JS_DefineProperty(cx, obj, "TProxy", ctor, JSPROP_RESOLVING, JS_STUBGETTER, JS_STUBSETTER))
+        return nullptr;
+
+    global->setConstructor(JSProto_TProxy, ObjectValue(*ctor));
+    return ctor;
+}
+
+JS_FRIEND_API(JSObject *)
+js::GetIdentityObject(JSObject *obj)
+{
+    JSObject *retObj = CheckedUnwrap(obj);
+
+    if (!IsTransparentProxy(retObj))
+        return retObj;
+    else {
+        retObj = GetProxyTargetObject(retObj);
+        return GetIdentityObject(retObj);
+    }
 }

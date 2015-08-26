@@ -1214,9 +1214,23 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
 
     // Steps 5-6, and 8 (reordered).
     RootedValue priv(cx, ObjectValue(*target));
-    JSObject* proxy_ =
-        NewProxyObject(cx, &ScriptedDirectProxyHandler::singleton,
+    
+    //Modifying to call the appropiate function according to the passed caller
+    JSObject* proxy_;
+    if (callerName=="TProxy")
+    {
+        TransparentProxyOptions options;
+        options.settingClass();
+        proxy_ = NewProxyObject(cx, &ScriptedDirectProxyHandler::singleton,
+                       priv, TaggedProto::LazyProto,options);
+    }
+    else
+    {
+        proxy_ = NewProxyObject(cx, &ScriptedDirectProxyHandler::singleton,
                        priv, TaggedProto::LazyProto);
+    }
+
+
     if (!proxy_)
         return false;
 
@@ -1246,6 +1260,21 @@ js::proxy(JSContext* cx, unsigned argc, Value* vp)
     }
 
     return NewScriptedProxy(cx, args, "Proxy");
+}
+
+//TProxy
+
+bool
+js::tProxy(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    if (!args.isConstructing()) {
+        JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_FUNCTION, "TProxy");
+        return false;
+    }
+
+    return NewScriptedProxy(cx, args, "TProxy");
 }
 
 static bool

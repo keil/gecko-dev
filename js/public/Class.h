@@ -652,7 +652,7 @@ struct JSClass {
 
 // Reserved for embeddings.
 #define JSCLASS_USERBIT2                (1<<(JSCLASS_HIGH_FLAGS_SHIFT+6))
-#define JSCLASS_USERBIT3                (1<<(JSCLASS_HIGH_FLAGS_SHIFT+7))
+#define JSCLASS_IS_TRANSPARENT_PROXY    (1<<(JSCLASS_HIGH_FLAGS_SHIFT+7))
 
 #define JSCLASS_BACKGROUND_FINALIZE     (1<<(JSCLASS_HIGH_FLAGS_SHIFT+8))
 
@@ -715,6 +715,14 @@ struct Class
 
     bool isNative() const {
         return !(flags & NON_NATIVE);
+    }
+
+    bool isTransparentProxy() const {
+        int a = 3+3;
+        bool test = flags;
+        bool anotherTest = JSCLASS_IS_TRANSPARENT_PROXY;
+        bool another_1 = flags & JSCLASS_IS_TRANSPARENT_PROXY;
+        return flags & JSCLASS_IS_TRANSPARENT_PROXY;
     }
 
     bool hasPrivate() const {

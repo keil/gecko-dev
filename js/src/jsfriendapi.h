@@ -357,6 +357,55 @@ namespace js {
                          js::proxy_ObjectMoved                          \
                        ))
 
+//Macro Functions for Transparent Proxy
+#define TPROXY_CLASS_WITH_EXT(name, flags, ext)                                          \
+    {                                                                                   \
+        name,                                                                           \
+        js::Class::NON_NATIVE |                                                         \
+            JSCLASS_IS_PROXY |                                                          \
+            JSCLASS_IS_TRANSPARENT_PROXY |                                              \
+            JSCLASS_IMPLEMENTS_BARRIERS |                                               \
+            JSCLASS_DELAY_METADATA_CALLBACK |                                           \
+            flags,                                                                      \
+        nullptr,                 /* addProperty */                                      \
+        nullptr,                 /* delProperty */                                      \
+        nullptr,                 /* getProperty */                                      \
+        nullptr,                 /* setProperty */                                      \
+        nullptr,                 /* enumerate */                                        \
+        nullptr,                 /* resolve */                                          \
+        nullptr,                 /* mayResolve */                                       \
+        js::proxy_Convert,                                                              \
+        js::proxy_Finalize,      /* finalize    */                                      \
+        nullptr,                 /* call        */                                      \
+        js::proxy_HasInstance,   /* hasInstance */                                      \
+        nullptr,                 /* construct   */                                      \
+        js::proxy_Trace,         /* trace       */                                      \
+        JS_NULL_CLASS_SPEC,                                                             \
+        ext,                                                                            \
+        {                                                                               \
+            js::proxy_LookupProperty,                                                   \
+            js::proxy_DefineProperty,                                                   \
+            js::proxy_HasProperty,                                                      \
+            js::proxy_GetProperty,                                                      \
+            js::proxy_SetProperty,                                                      \
+            js::proxy_GetOwnPropertyDescriptor,                                         \
+            js::proxy_DeleteProperty,                                                   \
+            js::proxy_Watch, js::proxy_Unwatch,                                         \
+            js::proxy_GetElements,                                                      \
+            nullptr,             /* enumerate       */                                  \
+            nullptr,             /* thisObject      */                                  \
+        }                                                                               \
+    }
+
+#define TPROXY_CLASS_DEF(name, flags)                                    \
+  TPROXY_CLASS_WITH_EXT(name, flags,                                     \
+                       PROXY_MAKE_EXT(                                  \
+                         nullptr, /* outerObject */                     \
+                         nullptr, /* innerObject */                     \
+                         false,   /* isWrappedNative */                 \
+                         js::proxy_ObjectMoved                          \
+                       ))
+
 /*
  * Proxy stubs, similar to JS_*Stub, for embedder proxy class definitions.
  *

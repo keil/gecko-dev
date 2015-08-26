@@ -83,6 +83,9 @@ proxy_create(JSContext* cx, unsigned argc, Value* vp);
 bool
 proxy_createFunction(JSContext* cx, unsigned argc, Value* vp);
 
+bool
+tproxy_createFunction(JSContext* cx, unsigned argc, Value* vp);
+
 } /* namespace js */
 
 #endif /* proxy_ScriptedIndirectProxyHandler_h */

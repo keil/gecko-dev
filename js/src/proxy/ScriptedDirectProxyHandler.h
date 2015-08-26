@@ -8,6 +8,7 @@
 #define proxy_ScriptedDirectProxyHandler_h
 
 #include "js/Proxy.h"
+#include "Proxy.h"
 
 namespace js {
 
@@ -102,6 +103,9 @@ class ScriptedDirectProxyHandler : public BaseProxyHandler {
 
 bool
 proxy(JSContext* cx, unsigned argc, Value* vp);
+
+bool
+tProxy(JSContext* cx, unsigned argc, Value* vp);
 
 bool
 proxy_revocable(JSContext* cx, unsigned argc, Value* vp);

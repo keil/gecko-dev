@@ -108,6 +108,12 @@ class ProxyObject : public JSObject
     static const Class class_;
 };
 
+class TProxyObject : public ProxyObject {
+    public:
+        static const Class class_;
+
+};
+
 } // namespace js
 
 // Note: the following |JSObject::is<T>| methods are implemented in terms of
@@ -121,6 +127,13 @@ inline bool
 JSObject::is<js::ProxyObject>() const
 {
     return js::IsProxy(const_cast<JSObject*>(this));
+}
+
+template<>
+inline bool
+JSObject::is<js::TProxyObject>() const
+{
+    return js::IsTransparentProxy(const_cast<JSObject*>(this));
 }
 
 #endif /* vm_ProxyObject_h */

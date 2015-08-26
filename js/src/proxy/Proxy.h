@@ -75,6 +75,10 @@ class Proxy
                          MutableHandleValue vp);
 };
 
+class TProxy : public Proxy{
+
+};
+
 } /* namespace js */
 
 #endif /* proxy_Proxy_h */

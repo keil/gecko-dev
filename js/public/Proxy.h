@@ -424,10 +424,22 @@ class JS_FRIEND_API(DirectProxyHandler) : public BaseProxyHandler
 };
 
 extern JS_FRIEND_DATA(const js::Class* const) ProxyClassPtr;
+extern JS_FRIEND_DATA(const js::Class* const) TProxyClassPtr;
+
 
 inline bool IsProxy(const JSObject* obj)
 {
     return GetObjectClass(obj)->isProxy();
+}
+
+inline bool IsTransparentProxy(const JSObject* obj)
+{
+    /*const js::Class* temp;
+    temp = GetObjectClass(obj);
+    return temp->isTransparentProxy();*/
+    const js::Class* className = GetObjectClass(obj);
+    bool aTest = className->isTransparentProxy();
+    return GetObjectClass(obj)->isTransparentProxy();
 }
 
 const uint32_t PROXY_EXTRA_SLOTS = 2;
@@ -588,8 +600,21 @@ class MOZ_STACK_CLASS ProxyOptions {
     const Class* clasp_;
 };
 
+//Transparent Proxy
+class MOZ_STACK_CLASS TransparentProxyOptions : public ProxyOptions
+{
+public:
+    ProxyOptions& settingClass() {
+        return setClass(TProxyClassPtr);
+    }
+};
+
 JS_FRIEND_API(JSObject*)
 NewProxyObject(JSContext* cx, const BaseProxyHandler* handler, HandleValue priv,
+               JSObject* proto, const ProxyOptions& options = ProxyOptions());
+
+JS_FRIEND_API(JSObject*)
+NewTransparentProxyObject(JSContext* cx, const BaseProxyHandler* handler, HandleValue priv,
                JSObject* proto, const ProxyOptions& options = ProxyOptions());
 
 JSObject*
@@ -685,6 +710,9 @@ inline void assertEnteredPolicy(JSContext* cx, JSObject* obj, jsid id,
 
 extern JS_FRIEND_API(JSObject*)
 InitProxyClass(JSContext* cx, JS::HandleObject obj);
+
+extern JS_FRIEND_API(JSObject*)
+InitTProxyClass(JSContext* cx, JS::HandleObject obj);
 
 } /* namespace js */
 
