@@ -478,6 +478,9 @@ struct ProxyDataLayout
 
 const uint32_t ProxyDataOffset = 2 * sizeof(void*);
 
+extern JS_FRIEND_API(JSObject*)
+GetIdentityObject(JSObject *obj);
+
 // This method should only be used internally and by the accessors below.
 inline ProxyDataLayout*
 GetProxyDataLayout(JSObject* obj)
