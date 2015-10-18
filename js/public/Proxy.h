@@ -442,7 +442,7 @@ inline bool IsTransparentProxy(const JSObject* obj)
     return GetObjectClass(obj)->isTransparentProxy();
 }
 
-const uint32_t PROXY_EXTRA_SLOTS = 2;
+const uint32_t PROXY_EXTRA_SLOTS = 3;
 
 // Layout of the values stored by a proxy. Note that API clients require the
 // private slot to be the first slot in the proxy's values, so that the private

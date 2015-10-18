@@ -515,6 +515,35 @@ js::proxy_create(JSContext* cx, unsigned argc, Value* vp)
 }
 
 bool
+js::tproxy_create(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+    if (args.length() < 1) {
+        JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_MORE_ARGS_NEEDED,
+                             "create", "0", "s");
+        return false;
+    }
+    JSObject* handler = NonNullObject(cx, args[0]);
+    if (!handler)
+        return false;
+    JSObject* proto;
+    if (args.get(1).isObject()) {
+        proto = &args[1].toObject();
+    } else {
+        MOZ_ASSERT(IsFunctionObject(&args.callee()));
+        proto = nullptr;
+    }
+    RootedValue priv(cx, ObjectValue(*handler));
+    JSObject* proxy = NewTransparentProxyObject(cx, &ScriptedIndirectProxyHandler::singleton,
+                                     priv, proto);
+    if (!proxy)
+        return false;
+
+    args.rval().setObject(*proxy);
+    return true;
+}
+
+bool
 js::proxy_createFunction(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);

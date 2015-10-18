@@ -822,13 +822,14 @@ JS_FRIEND_API(JSObject*)
 js::InitTProxyClass(JSContext* cx, HandleObject obj)
 {
     static const JSFunctionSpec static_methods[] = {
-        JS_FN("create",         proxy_create,          2, 0),
+        JS_FN("create",         tproxy_create,          2, 0),
         JS_FN("createFunction", tproxy_createFunction,  3, 0),
         JS_FN("revocable",      proxy_revocable,       2, 0),
         JS_FS_END
     };
 
     Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
+
     RootedFunction ctor(cx);
     ctor = global->createConstructor(cx, tProxy, cx->names().TProxy, 2);
     if (!ctor)
@@ -839,7 +840,14 @@ js::InitTProxyClass(JSContext* cx, HandleObject obj)
     if (!JS_DefineProperty(cx, obj, "TProxy", ctor, JSPROP_RESOLVING, JS_STUBGETTER, JS_STUBSETTER))
         return nullptr;
 
+    
+
     global->setConstructor(JSProto_TProxy, ObjectValue(*ctor));
+
+    //Creating the function for TProxy
+    if(!JS_DefineFunction(cx,ctor,"test",test_function,0,0))
+       return nullptr;
+   
     return ctor;
 }
 

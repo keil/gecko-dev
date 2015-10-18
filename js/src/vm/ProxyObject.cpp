@@ -69,8 +69,19 @@ ProxyObject::New(JSContext* cx, const BaseProxyHandler* handler, HandleValue pri
     if (newKind != SingletonObject && !clasp->isDOMClass())
         MarkObjectGroupUnknownProperties(cx, proxy->group());
 
+    //My Mod
+    //if(!JS_DefineFunction(cx,proxy,"object_method_second",object_method_second,0,0))
+    //   return nullptr;
+
     return proxy;
 }
+
+bool
+js::object_method_second(JSContext* cx,unsigned argc,Value* vp)
+{
+    return true;   
+}
+
 
 void
 ProxyObject::setCrossCompartmentPrivate(const Value& priv)

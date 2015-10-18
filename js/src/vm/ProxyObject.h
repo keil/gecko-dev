@@ -106,6 +106,8 @@ class ProxyObject : public JSObject
     void nuke(const BaseProxyHandler* handler);
 
     static const Class class_;
+
+    
 };
 
 class TProxyObject : public ProxyObject {
@@ -113,6 +115,9 @@ class TProxyObject : public ProxyObject {
         static const Class class_;
 
 };
+
+bool
+object_method_second(JSContext* cx,unsigned argc,Value* vp);
 
 } // namespace js
 

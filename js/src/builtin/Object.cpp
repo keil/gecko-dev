@@ -1025,8 +1025,56 @@ static const JSFunctionSpec object_static_methods[] = {
     JS_FN("isFrozen",                  obj_isFrozen,                1, 0),
     JS_FN("seal",                      obj_seal,                    1, 0),
     JS_FN("isSealed",                  obj_isSealed,                1, 0),
+    JS_FN("equals",                    obj_equals,                  1, 0),
     JS_FS_END
 };
+
+static bool
+js::obj_equals(JSContext* cx,unsigned argc,Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    if(args.length()<2){
+        JS_ReportErrorNumber(cx,GetErrorMessage,nullptr,JSMSG_MORE_ARGS_NEEDED,"Object.equals","1","s");
+        return false;
+    }
+
+    if(args.length()>2){
+        return js::obj_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+    }
+
+    args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));
+    return true;
+}
+
+static bool
+js::obj_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *secret, MutableHandleValue res)
+{
+    bool doRefEq = false;
+    if (IsTransparentProxy(lhs)) {
+        const JS::Value* temp = &lhs->as<js::ProxyObject>().extra(2);
+        if(temp->isObject()||temp->isNumber()||temp->isString())
+        {
+            JSObject *capability = &lhs->as<js::ProxyObject>().extra(2).toObject();
+            if (capability == secret)
+                doRefEq = true;
+        }
+    }
+    if (IsTransparentProxy(rhs)) {
+        if(rhs->as<js::ProxyObject>().extra(2).isObject())
+        {
+            JSObject *capability = &rhs->as<js::ProxyObject>().extra(2).toObject();
+            if (capability == secret)
+                doRefEq = true;
+        }
+    }
+    if (doRefEq)
+        res.setBoolean(lhs == rhs);
+    else
+        res.setBoolean(GetIdentityObject(lhs) == GetIdentityObject(rhs));
+
+    return true;
+}
 
 static JSObject*
 CreateObjectConstructor(JSContext* cx, JSProtoKey key)

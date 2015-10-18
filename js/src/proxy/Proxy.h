@@ -76,7 +76,7 @@ class Proxy
 };
 
 class TProxy : public Proxy{
-
+    
 };
 
 } /* namespace js */

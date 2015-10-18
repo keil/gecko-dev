@@ -110,6 +110,12 @@ tProxy(JSContext* cx, unsigned argc, Value* vp);
 bool
 proxy_revocable(JSContext* cx, unsigned argc, Value* vp);
 
+bool
+test_function(JSContext* cx,unsigned argc,Value* vp);
+
+bool
+object_method(JSContext* cx,unsigned argc,Value* vp);
+
 } /* namespace js */
 
 #endif /* proxy_ScriptedDirectProxyHandler_h */

@@ -718,10 +718,6 @@ struct Class
     }
 
     bool isTransparentProxy() const {
-        int a = 3+3;
-        bool test = flags;
-        bool anotherTest = JSCLASS_IS_TRANSPARENT_PROXY;
-        bool another_1 = flags & JSCLASS_IS_TRANSPARENT_PROXY;
         return flags & JSCLASS_IS_TRANSPARENT_PROXY;
     }
 

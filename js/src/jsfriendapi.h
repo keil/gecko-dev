@@ -294,6 +294,14 @@ JS_DefineFunctionsWithHelp(JSContext* cx, JS::HandleObject obj, const JSFunction
 
 namespace js {
 
+extern JS_FRIEND_API(bool)
+object_method(JSContext* cx,unsigned argc,JS::Value* vp);
+
+static const JSFunctionSpec tProxy_methods[] = {
+    JS_FN("testing",object_method,0,0)
+};
+
+
 /*
  * Helper Macros for creating JSClasses that function as proxies.
  *
@@ -380,7 +388,7 @@ namespace js {
         js::proxy_HasInstance,   /* hasInstance */                                      \
         nullptr,                 /* construct   */                                      \
         js::proxy_Trace,         /* trace       */                                      \
-        JS_NULL_CLASS_SPEC,                                                             \
+        {nullptr,nullptr,nullptr,nullptr,tProxy_methods,nullptr,nullptr},                                                                              \
         ext,                                                                            \
         {                                                                               \
             js::proxy_LookupProperty,                                                   \

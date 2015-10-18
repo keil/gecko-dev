@@ -1238,6 +1238,12 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
     Rooted<ProxyObject*> proxy(cx, &proxy_->as<ProxyObject>());
     proxy->setExtra(ScriptedDirectProxyHandler::HANDLER_EXTRA, ObjectValue(*handler));
 
+    //For extra Parameter
+    if(args.length()>2){
+        JSObject* obj_44 = &args[2].toObject();
+        proxy->setExtra(2,ObjectValue(*obj_44));
+    }
+
     // Step 7, Assign [[Call]] and [[Construct]].
     uint32_t callable = target->isCallable() ? ScriptedDirectProxyHandler::IS_CALLABLE : 0;
     uint32_t constructor = target->isConstructor() ? ScriptedDirectProxyHandler::IS_CONSTRUCTOR : 0;
@@ -1246,6 +1252,10 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
 
     // Step 10.
     args.rval().setObject(*proxy);
+
+    if(!JS_DefineFunction(cx,proxy,"testing",test_function,0,0))
+       return nullptr;
+
     return true;
 }
 
@@ -1265,9 +1275,49 @@ js::proxy(JSContext* cx, unsigned argc, Value* vp)
 //TProxy
 
 bool
+js::test_function(JSContext* cx,unsigned argc,Value* vp)
+{
+    return true;
+}
+
+bool
+js::object_method(JSContext* cx,unsigned argc,Value* vp)
+{
+    return true;
+}
+
+bool
 js::tProxy(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+
+    //Defining Custom Function
+    RootedObject global (cx,JS_GetGlobalForObject(cx, &args.callee()));
+    if (!JS_DefineFunction(cx, global, "object_method", object_method, 0, 0))
+        return nullptr;
+
+    //Defining Custom Function 2
+    /* JSAPI */
+    // JS::MutableHandleValue val;
+
+    // // Get the String constructor from the global object.
+    // if (!JS_GetProperty(cx, global, "TProxy", val))
+    //     return false;
+    // if (JSVAL_IS_PRIMITIVE(val))
+    //     return ThrowError(cx, global, "TProxy is not an object", __FILE__, __LINE__);
+    // RootedObject string(cx,JSVAL_TO_OBJECT(val));
+
+    // // Get String.prototype.
+    // if (!JS_GetProperty(cx, string, "prototype", val))
+    //     return false;
+    // if (JSVAL_IS_PRIMITIVE(val))
+    //     return ThrowError(cx, global, "String.prototype is not an object", __FILE__, __LINE__);
+    // RootedObject string_prototype(cx,JSVAL_TO_OBJECT(val));
+
+    // // ...and now we can add some new functionality to all strings.
+    // //if (!JS_DefineProperty(cx, string_prototype, "md5sum", JS::UndefinedValue(), GetMD5Func, NULL,
+    // //                   JSPROP_SHARED | JSPROP_NATIVE_ACCESSORS | JSPROP_ENUMERATE))
+    // //    return false;
 
     if (!args.isConstructing()) {
         JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_FUNCTION, "TProxy");
