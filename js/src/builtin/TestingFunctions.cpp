@@ -2699,6 +2699,33 @@ SetARMHwCapFlags(JSContext* cx, unsigned argc, Value* vp)
     return true;
 }
 
+
+static bool
+myTestFunction(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+    int length = args.length();
+
+    if (length==2)
+    {
+        if (args.get(1).isObject())
+        {
+            RootedObject obj4(cx,&args.get(1).toObject());
+            args.rval().setObject(*obj4);
+        }
+        else
+        {
+            args.rval().setUndefined();
+        }
+    }
+    else {
+        args.rval().setUndefined();
+    }
+
+    return true;
+}
+
+
 static const JSFunctionSpecWithHelp TestingFunctions[] = {
     JS_FN_HELP("gc", ::GC, 0, 0,
 "gc([obj] | 'compartment' [, 'shrinking'])",
@@ -3138,6 +3165,8 @@ gc::ZealModeHelpText),
 "setARMHwCapFlags(\"flag1,flag2 flag3\")",
 "  On non-ARM, no-op. On ARM, set the hardware capabilities. The list of \n"
 "  flags is available by calling this function with \"help\" as the flag's name"),
+
+    JS_FN_HELP("myTestFunction",myTestFunction,2,0,"just a test function","just a function"),
 
     JS_FS_HELP_END
 };
