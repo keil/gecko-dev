@@ -844,10 +844,10 @@ js::InitTProxyClass(JSContext* cx, HandleObject obj)
 
     global->setConstructor(JSProto_TProxy, ObjectValue(*ctor));
 
-    //Creating the function for TProxy
-    if(!JS_DefineFunction(cx,ctor,"test",test_function,0,0))
-       return nullptr;
-   
+    //Creating the Constructor method for TProxy
+    if(!JS_DefineFunction(cx,ctor,"test",object_method,1,0))
+          return nullptr;
+
     return ctor;
 }
 

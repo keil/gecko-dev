@@ -111,7 +111,7 @@ bool
 proxy_revocable(JSContext* cx, unsigned argc, Value* vp);
 
 bool
-test_function(JSContext* cx,unsigned argc,Value* vp);
+ConstructorFunctionByUser(JSContext* cx,unsigned argc,Value* vp);
 
 bool
 object_method(JSContext* cx,unsigned argc,Value* vp);

@@ -38,6 +38,8 @@
 
 #include "vm/NativeObject-inl.h"
 
+#include "proxy/ScriptedDirectProxyHandler.h"
+
 using namespace js;
 
 using mozilla::ArrayLength;
@@ -2699,6 +2701,101 @@ SetARMHwCapFlags(JSContext* cx, unsigned argc, Value* vp)
     return true;
 }
 
+bool
+object_method_another(JSContext* cx,unsigned argc,Value* vp)
+{
+    return true;
+}
+
+static bool
+myTestFunctionSecond(JSContext* cx,unsigned argc,Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    RootedObject obj_0(cx,&args[1].toObject());
+
+    args.rval().setObject(*obj_0);
+    return true;
+}
+
+static bool
+myTestFunction(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+    int length = args.length();
+
+    //RootedObject obj(cx,&args[0].toObject());
+
+    // RootedObject global_obj (cx,JS_GetGlobalForObject(cx,obj));
+
+    // RootedFunction func (cx,JS_NewFunction(cx,myTestFunctionSecond,2,0,"myTestFunctionSecond"));
+    // RootedValue v(cx);
+    // bool success_1 = JS_CallFunction(cx, global_obj,func,args,&v);
+
+    // RootedString str(cx, ToString(cx, v));
+    // if (!str)
+    //     return false;
+
+    // str->dumpRepresentation(stderr, 0);
+
+    // //JSObject* global_obj = JS_GetGlobalForObject(cx,obj);
+
+    // RootedObject obj2 (cx,js::InitProxyClass(cx,global_obj));
+    // //RootedObject obj2 = js::InitProxyClass(cx,global_obj);
+
+    // //Checking if obj2 is prototype
+    // if(obj2!=NULL)
+    // {
+    //     printf("An object\n");
+    // }
+    // else{
+    //     printf("Not an object\n");
+    // }
+
+
+    //js::proxy(cx,argc,vp);
+    //JSObject* obj3 = &args.rval().toObject();
+    //RootedObject obj3 (cx,args.rval());
+    /*RootedString str(cx, ToString(cx, args.get(0)));
+    if (!str)
+        return false;
+
+    str->dumpRepresentation(stderr, 0);*/
+
+    /*if(!JS_DefineFunction(cx,global_obj,"test",object_method_another,0,0))
+          return nullptr;*/
+    if (length==2)
+    {
+        if (args.get(1).isObject())
+        {
+            RootedObject obj4(cx,&args.get(1).toObject());
+            args.rval().setObject(*obj4); 
+        }
+        else
+        {
+            args.rval().setUndefined();
+        }
+    }
+    else {
+        args.rval().setUndefined();
+    }
+    
+
+
+    
+    // if(v.isObject())
+    // {
+    //     RootedObject obj4(cx,&args[1].toObject());
+    //     args.rval().setObject(*obj);    
+    // }
+    // else
+    // {
+    //     args.rval().setUndefined();    
+    // }
+    
+    return true;
+}
+
 static const JSFunctionSpecWithHelp TestingFunctions[] = {
     JS_FN_HELP("gc", ::GC, 0, 0,
 "gc([obj] | 'compartment' [, 'shrinking'])",
@@ -3139,8 +3236,12 @@ gc::ZealModeHelpText),
 "  On non-ARM, no-op. On ARM, set the hardware capabilities. The list of \n"
 "  flags is available by calling this function with \"help\" as the flag's name"),
 
+    JS_FN_HELP("myTestFunction",myTestFunction,2,0,"just a test function","just a function"),
+
     JS_FS_HELP_END
 };
+
+
 
 static const JSPropertySpec TestingProperties[] = {
     JS_PSG("timesAccessed", TimesAccessed, 0),
