@@ -39,8 +39,8 @@
 #include "vm/NativeObject-inl.h"
 
 #include "proxy/ScriptedDirectProxyHandler.h"
-#include "builtin/Object.h"
-#include "jspubtd.h"
+//#include "builtin/Object.h"
+//#include "jspubtd.h"
 
 using namespace js;
 
@@ -2743,6 +2743,55 @@ SetterForProp(JSContext* cx,unsigned argc,Value* vp)
 }
 
 static bool
+realm_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *secret, MutableHandleValue res)
+{
+    bool doRefEq = false;
+    if (IsTransparentProxy(lhs)) {
+        const JS::Value* temp = &lhs->as<js::ProxyObject>().extra(2);
+        if(temp->isObject()||temp->isNumber()||temp->isString())
+        {
+            JSObject *capability = &lhs->as<js::ProxyObject>().extra(2).toObject();
+            if (capability == secret)
+                doRefEq = true;
+        }
+    }
+    if (IsTransparentProxy(rhs)) {
+        if(rhs->as<js::ProxyObject>().extra(2).isObject())
+        {
+            JSObject *capability = &rhs->as<js::ProxyObject>().extra(2).toObject();
+            if (capability == secret)
+                doRefEq = true;
+        }
+    }
+    if (doRefEq)
+        res.setBoolean(lhs == rhs);
+    else
+        res.setBoolean(GetIdentityObject(lhs) == GetIdentityObject(rhs));
+
+    return true;
+}
+
+static bool
+realm_equals(JSContext* cx,unsigned argc,Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    if(args.length()<2){
+        JS_ReportErrorNumber(cx,GetErrorMessage,nullptr,JSMSG_MORE_ARGS_NEEDED,"Realm.equals","1","s");
+        return false;
+    }
+
+    if(args.length()>2){
+        return realm_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+    }
+
+    args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));
+    return true;
+}
+
+
+
+static bool
 CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
 {
     /* Working Call for Constructing a new TProxy*/
@@ -2859,23 +2908,23 @@ equals(JSContext* cx, unsigned argc, Value* vp)
 
     //Creating a Dummy Plain Object to access underlying equals method
     //RootedObject temp_obj(cx,JS_NewObject(cx,nullptr));
-    //RootedObject param_obj(cx,&args[0].toObject());
+    RootedObject param_obj(cx,&args[0].toObject());
 
-    //RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
+    RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
 
     //Getting the Constructor for Object to call .equals on it
-    const Class* clasp = &js::PlainObject::class_;
+    /*const Class* clasp = &js::PlainObject::class_;
     JSProtoKey protoKey = JSProto_Object;
-    RootedObject ctor(cx, clasp->spec.createConstructorHook()(cx, protoKey));
+    RootedObject ctor(cx, clasp->spec.createConstructorHook()(cx, protoKey));*/
 
-    RootedFunction obj_equal_func(cx,JS_NewFunction(cx,obj_equals,3,0,"object_equals_func"));
+    RootedFunction realm_equal_func(cx,JS_NewFunction(cx,realm_equals,3,0,"object_equals_func"));
     RootedValue v(cx);
-    bool result = JS_CallFunction(cx, ctor,obj_equal_func,args,&v);
+    bool result = JS_CallFunction(cx, global_obj,realm_equal_func,args,&v);
 
     if(v.isBoolean())
     {
-        RootedObject obj4(cx,&v.toObject());
-        args.rval().setObject(*obj4);    
+        bool return_val = JS::ToBoolean(v);
+        args.rval().setBoolean(return_val);
     }
     else
     {
