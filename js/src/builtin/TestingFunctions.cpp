@@ -39,6 +39,8 @@
 #include "vm/NativeObject-inl.h"
 
 #include "proxy/ScriptedDirectProxyHandler.h"
+#include "builtin/Object.h"
+#include "jspubtd.h"
 
 using namespace js;
 
@@ -2719,15 +2721,68 @@ myTestFunctionSecond(JSContext* cx,unsigned argc,Value* vp)
 }
 
 static bool
-myTestFunction(JSContext* cx, unsigned argc, Value* vp)
+getterForProp(JSContext* cx,unsigned argc,Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    int length = args.length();
 
-    //RootedObject obj(cx,&args[0].toObject());
+    RootedObject obj_0(cx,&args[1].toObject());
 
-    // RootedObject global_obj (cx,JS_GetGlobalForObject(cx,obj));
+    args.rval().setObject(*obj_0);
+    return true;
+}
 
+static bool
+SetterForProp(JSContext* cx,unsigned argc,Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    RootedObject obj_0(cx,&args[1].toObject());
+
+    args.rval().setObject(*obj_0);
+    return true;
+}
+
+static bool
+CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
+{
+    /* Working Call for Constructing a new TProxy*/
+    argc += 1;
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    //Getting the parent object
+    RootedValue current_val(cx,args.thisv());
+    RootedObject current_object(cx,&current_val.toObject());
+    RootedValue third_argument(cx);
+    JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+    if(third_argument.isObject())
+        args[2].set(third_argument);
+
+    RootedObject param_obj(cx,&args[0].toObject());
+
+    RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
+
+    RootedFunction func_proxy(cx,JS_NewFunction(cx,js::tProxy,3,JSFUN_CONSTRUCTOR,"proxy_func"));
+    RootedValue v(cx);
+    RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
+    RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
+    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+
+    if(v.isObject())
+    {
+        RootedObject obj4(cx,&v.toObject());
+        args.rval().setObject(*obj4);    
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
+
+    return true;
+
+
+
+
+    //Calling a test Function and returning an objectS
     // RootedFunction func (cx,JS_NewFunction(cx,myTestFunctionSecond,2,0,"myTestFunctionSecond"));
     // RootedValue v(cx);
     // bool success_1 = JS_CallFunction(cx, global_obj,func,args,&v);
@@ -2740,7 +2795,7 @@ myTestFunction(JSContext* cx, unsigned argc, Value* vp)
 
     // //JSObject* global_obj = JS_GetGlobalForObject(cx,obj);
 
-    // RootedObject obj2 (cx,js::InitProxyClass(cx,global_obj));
+    //RootedObject obj2 (cx,js::InitProxyClass(cx,global_obj));
     // //RootedObject obj2 = js::InitProxyClass(cx,global_obj);
 
     // //Checking if obj2 is prototype
@@ -2764,35 +2819,103 @@ myTestFunction(JSContext* cx, unsigned argc, Value* vp)
 
     /*if(!JS_DefineFunction(cx,global_obj,"test",object_method_another,0,0))
           return nullptr;*/
-    if (length==2)
+    // if (length==2)
+    // {
+    //     if (args.get(1).isObject())
+    //     {
+    //         RootedObject obj4(cx,&args.get(1).toObject());
+    //         args.rval().setObject(*obj4); 
+    //     }
+    //     else
+    //     {
+    //         args.rval().setUndefined();
+    //     }
+    // }
+    // else {
+    //     args.rval().setUndefined();
+    // }
+    
+
+
+    
+    
+    
+}
+
+static bool
+equals(JSContext* cx, unsigned argc, Value* vp)
+{
+    
+    argc += 1;
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    //Getting the parent object
+    RootedValue current_val(cx,args.thisv());
+    RootedObject current_object(cx,&current_val.toObject());
+    RootedValue third_argument(cx);
+    JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+    if(third_argument.isObject())
+        args[2].set(third_argument);
+
+    //Creating a Dummy Plain Object to access underlying equals method
+    //RootedObject temp_obj(cx,JS_NewObject(cx,nullptr));
+    //RootedObject param_obj(cx,&args[0].toObject());
+
+    //RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
+
+    //Getting the Constructor for Object to call .equals on it
+    const Class* clasp = &js::PlainObject::class_;
+    JSProtoKey protoKey = JSProto_Object;
+    RootedObject ctor(cx, clasp->spec.createConstructorHook()(cx, protoKey));
+
+    RootedFunction obj_equal_func(cx,JS_NewFunction(cx,obj_equals,3,0,"object_equals_func"));
+    RootedValue v(cx);
+    bool result = JS_CallFunction(cx, ctor,obj_equal_func,args,&v);
+
+    if(v.isBoolean())
     {
-        if (args.get(1).isObject())
-        {
-            RootedObject obj4(cx,&args.get(1).toObject());
-            args.rval().setObject(*obj4); 
-        }
-        else
-        {
-            args.rval().setUndefined();
-        }
+        RootedObject obj4(cx,&v.toObject());
+        args.rval().setObject(*obj4);    
     }
-    else {
-        args.rval().setUndefined();
+    else
+    {
+        args.rval().setUndefined();    
     }
     
 
+    
 
-    
-    // if(v.isObject())
-    // {
-    //     RootedObject obj4(cx,&args[1].toObject());
-    //     args.rval().setObject(*obj);    
-    // }
-    // else
-    // {
-    //     args.rval().setUndefined();    
-    // }
-    
+
+    return true;
+
+
+
+
+}
+
+static bool
+CreateRealm(JSContext* cx, unsigned argc, Value* vp)
+{
+    /* Creating a new Realm Object and setting a Secret Token on it */
+    CallArgs args = CallArgsFromVp(argc,vp);
+    if(args.length()>0)
+        return false;
+    RootedObject realm_obj(cx,JS_NewObject(cx,nullptr));
+    //RootedString secret_token(cx, JS_NewStringCopyZ(cx, "Secret Token")); 
+    //RootedValue val(cx,JS::StringValue(secret_token));
+    RootedObject obj_token(cx,JS_NewObject(cx,nullptr));
+    RootedValue val(cx,JS::ObjectValue(*obj_token));
+    if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
+        return false;
+
+    if(!JS_DefineFunction(cx,realm_obj,"CreateTransparentProxy",CreateTransparentProxy,3,0))
+        return nullptr;
+
+    if(!JS_DefineFunction(cx,realm_obj,"equals",equals,2,0))
+        return nullptr;
+
+
+    args.rval().setObject(*realm_obj);
     return true;
 }
 
@@ -3236,7 +3359,7 @@ gc::ZealModeHelpText),
 "  On non-ARM, no-op. On ARM, set the hardware capabilities. The list of \n"
 "  flags is available by calling this function with \"help\" as the flag's name"),
 
-    JS_FN_HELP("myTestFunction",myTestFunction,2,0,"just a test function","just a function"),
+    JS_FN_HELP("CreateRealm",CreateRealm,0,0,"This Function creates a Realm","This Function creates a Realm"),
 
     JS_FS_HELP_END
 };
