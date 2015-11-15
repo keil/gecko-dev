@@ -69,6 +69,8 @@ HashableValue::hash() const
     // HashableValue::setValue normalizes values so that the SameValue relation
     // on HashableValues is the same as the == relationship on
     // value.data.asBits.
+    if (value.isObject())
+        return DefaultHasher<JSObject *>::hash(GetIdentityObject(&value.toObject()));
     return value.asRawBits();
 }
 
@@ -76,7 +78,27 @@ bool
 HashableValue::operator==(const HashableValue& other) const
 {
     // Two HashableValues are equal if they have equal bits.
-    bool b = (value.asRawBits() == other.value.asRawBits());
+    //bool b = (value.asRawBits() == other.value.asRawBits());
+
+    JS::Value val;
+    JS::Value otherVal;
+    if (value.isObject())
+    {
+        JSObject* obj = GetIdentityObject(&value.toObject());
+        val = ObjectValue(*obj);
+    }
+    else
+        val = value;
+
+    if (other.value.isObject())
+    {
+        JSObject* other_obj = GetIdentityObject(&other.value.toObject());
+        otherVal = ObjectValue(*other_obj);
+    }
+    else
+        otherVal = other.value;
+
+    bool b = (val == otherVal);
 
 #ifdef DEBUG
     bool same;
