@@ -21,6 +21,8 @@
 
 #include "js/Utility.h"
 
+#include "js/Value.h"
+
 namespace js {
 
 class TempAllocPolicy;

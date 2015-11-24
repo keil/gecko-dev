@@ -405,7 +405,9 @@ WeakMap_set_impl(JSContext* cx, CallArgs args)
         return false;
     }
 
-    RootedObject key(cx, &args[0].toObject());
+    JSObject* targetObject = GetIdentityObject(&args[0].toObject());
+
+    RootedObject key(cx, targetObject);
     Rooted<JSObject*> thisObj(cx, &args.thisv().toObject());
     Rooted<WeakMapObject*> map(cx, &thisObj->as<WeakMapObject>());
 
