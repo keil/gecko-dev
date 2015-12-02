@@ -752,7 +752,7 @@ const Class js::ProxyObject::class_ =
 const Class* const js::ProxyClassPtr = &js::ProxyObject::class_;
 
 // For Transparent Proxy
-const Class js::TProxyObject::class_ = TPROXY_CLASS_DEF("TProxy", JSCLASS_HAS_CACHED_PROTO(JSProto_TProxy));
+const Class js::TProxyObject::class_ = TPROXY_CLASS_DEF("TransparentProxy", JSCLASS_HAS_CACHED_PROTO(JSProto_TransparentProxy));
 const Class* const js::TProxyClassPtr = &js::TProxyObject::class_;
 
 JS_FRIEND_API(JSObject*)
@@ -831,21 +831,21 @@ js::InitTProxyClass(JSContext* cx, HandleObject obj)
     Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
 
     RootedFunction ctor(cx);
-    ctor = global->createConstructor(cx, tProxy, cx->names().TProxy, 2);
+    ctor = global->createConstructor(cx, tProxy, cx->names().TransparentProxy, 2);
     if (!ctor)
         return nullptr;
 
     if (!JS_DefineFunctions(cx, ctor, static_methods))
         return nullptr;
-    if (!JS_DefineProperty(cx, obj, "TProxy", ctor, JSPROP_RESOLVING, JS_STUBGETTER, JS_STUBSETTER))
+    if (!JS_DefineProperty(cx, obj, "TransparentProxy", ctor, JSPROP_RESOLVING, JS_STUBGETTER, JS_STUBSETTER))
         return nullptr;
 
     
 
-    global->setConstructor(JSProto_TProxy, ObjectValue(*ctor));
+    global->setConstructor(JSProto_TransparentProxy, ObjectValue(*ctor));
 
-    //Creating the Constructor method for TProxy
-    if(!JS_DefineFunction(cx,ctor,"test",object_method,1,0))
+    //Creating the Constructor method for TransparentProxy
+    if(!JS_DefineFunction(cx,ctor,"createRealm",CreateRealm,0,0))
           return nullptr;
 
     return ctor;

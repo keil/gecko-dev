@@ -2741,7 +2741,7 @@ SetterForProp(JSContext* cx,unsigned argc,Value* vp)
     args.rval().setObject(*obj_0);
     return true;
 }
-
+/*
 static bool
 realm_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *secret, MutableHandleValue res)
 {
@@ -2794,7 +2794,7 @@ realm_equals(JSContext* cx,unsigned argc,Value* vp)
 static bool
 CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
 {
-    /* Working Call for Constructing a new TProxy*/
+    // Working Call for Constructing a new TProxy
     argc += 1;
     CallArgs args = CallArgsFromVp(argc,vp);
 
@@ -2860,14 +2860,14 @@ CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
     //js::proxy(cx,argc,vp);
     //JSObject* obj3 = &args.rval().toObject();
     //RootedObject obj3 (cx,args.rval());
-    /*RootedString str(cx, ToString(cx, args.get(0)));
-    if (!str)
-        return false;
+    //RootedString str(cx, ToString(cx, args.get(0)));
+    //if (!str)
+    //  return false;
 
-    str->dumpRepresentation(stderr, 0);*/
+    //str->dumpRepresentation(stderr, 0);
 
-    /*if(!JS_DefineFunction(cx,global_obj,"test",object_method_another,0,0))
-          return nullptr;*/
+    //if(!JS_DefineFunction(cx,global_obj,"test",object_method_another,0,0))
+    //    return nullptr;
     // if (length==2)
     // {
     //     if (args.get(1).isObject())
@@ -2913,9 +2913,9 @@ equals(JSContext* cx, unsigned argc, Value* vp)
     RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
 
     //Getting the Constructor for Object to call .equals on it
-    /*const Class* clasp = &js::PlainObject::class_;
-    JSProtoKey protoKey = JSProto_Object;
-    RootedObject ctor(cx, clasp->spec.createConstructorHook()(cx, protoKey));*/
+    //const Class* clasp = &js::PlainObject::class_;
+    //JSProtoKey protoKey = JSProto_Object;
+    //RootedObject ctor(cx, clasp->spec.createConstructorHook()(cx, protoKey));
 
     RootedFunction realm_equal_func(cx,JS_NewFunction(cx,realm_equals,3,0,"object_equals_func"));
     RootedValue v(cx);
@@ -2942,10 +2942,13 @@ equals(JSContext* cx, unsigned argc, Value* vp)
 
 }
 
+*/
+
+/*
 static bool
 CreateRealm(JSContext* cx, unsigned argc, Value* vp)
 {
-    /* Creating a new Realm Object and setting a Secret Token on it */
+    //Creating a new Realm Object and setting a Secret Token on it
     CallArgs args = CallArgsFromVp(argc,vp);
     if(args.length()>0)
         return false;
@@ -2967,6 +2970,8 @@ CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     args.rval().setObject(*realm_obj);
     return true;
 }
+*/
+
 
 static const JSFunctionSpecWithHelp TestingFunctions[] = {
     JS_FN_HELP("gc", ::GC, 0, 0,
@@ -3408,7 +3413,7 @@ gc::ZealModeHelpText),
 "  On non-ARM, no-op. On ARM, set the hardware capabilities. The list of \n"
 "  flags is available by calling this function with \"help\" as the flag's name"),
 
-    JS_FN_HELP("CreateRealm",CreateRealm,0,0,"This Function creates a Realm","This Function creates a Realm"),
+    //JS_FN_HELP("CreateRealm",CreateRealm,0,0,"This Function creates a Realm","This Function creates a Realm"),
 
     JS_FS_HELP_END
 };

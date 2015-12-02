@@ -1217,7 +1217,7 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
     
     //Modifying to call the appropiate function according to the passed caller
     JSObject* proxy_;
-    if (callerName=="TProxy")
+    if (callerName=="TransparentProxy")
     {
         TransparentProxyOptions options;
         options.settingClass();
@@ -1253,7 +1253,7 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
     // Step 10.
     args.rval().setObject(*proxy);
 
-    if(callerName=="TProxy")
+    if(callerName=="TransparentProxy")
     {
         if(!JS_DefineFunction(cx,proxy,"constructor",ConstructorFunctionByUser,2,0))
             return nullptr;    
@@ -1281,7 +1281,7 @@ bool
 js::ConstructorFunctionByUser(JSContext* cx,unsigned argc,Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc,vp);
-    return NewScriptedProxy(cx,args,"TProxy");
+    return NewScriptedProxy(cx,args,"TransparentProxy");
 }
 
 bool
@@ -1289,6 +1289,223 @@ js::object_method(JSContext* cx,unsigned argc,Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc,vp);
     HandleValue value = args.get(0);
+    return true;
+}
+
+//TransparnetProxy methods
+
+bool
+js::realm_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *secret, MutableHandleValue res)
+{
+    bool doRefEq = false;
+    if (IsTransparentProxy(lhs)) {
+        const JS::Value* temp = &lhs->as<js::ProxyObject>().extra(2);
+        if(temp->isObject()||temp->isNumber()||temp->isString())
+        {
+            JSObject *capability = &lhs->as<js::ProxyObject>().extra(2).toObject();
+            if (capability == secret)
+                doRefEq = true;
+        }
+    }
+    if (IsTransparentProxy(rhs)) {
+        if(rhs->as<js::ProxyObject>().extra(2).isObject())
+        {
+            JSObject *capability = &rhs->as<js::ProxyObject>().extra(2).toObject();
+            if (capability == secret)
+                doRefEq = true;
+        }
+    }
+    if (doRefEq)
+        res.setBoolean(lhs == rhs);
+    else
+        res.setBoolean(GetIdentityObject(lhs) == GetIdentityObject(rhs));
+
+    return true;
+}
+
+bool
+js::realm_equals(JSContext* cx,unsigned argc,Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    if(args.length()<2){
+        JS_ReportErrorNumber(cx,GetErrorMessage,nullptr,JSMSG_MORE_ARGS_NEEDED,"Realm.equals","1","s");
+        return false;
+    }
+
+    if(args.length()>2){
+        return realm_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+    }
+
+    args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));
+    return true;
+}
+
+bool
+js::CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
+{
+    /* Working Call for Constructing a new TProxy*/
+    argc += 1;
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    //Getting the parent object
+    RootedValue current_val(cx,args.thisv());
+    RootedObject current_object(cx,&current_val.toObject());
+    RootedValue third_argument(cx);
+    JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+    if(third_argument.isObject())
+        args[2].set(third_argument);
+
+    RootedObject param_obj(cx,&args[0].toObject());
+
+    RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
+
+    RootedFunction func_proxy(cx,JS_NewFunction(cx,js::tProxy,3,JSFUN_CONSTRUCTOR,"proxy_func"));
+    RootedValue v(cx);
+    RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
+    RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
+    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+
+    if(v.isObject())
+    {
+        RootedObject obj4(cx,&v.toObject());
+        args.rval().setObject(*obj4);    
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
+
+    return true;
+
+
+
+
+    //Calling a test Function and returning an objectS
+    // RootedFunction func (cx,JS_NewFunction(cx,myTestFunctionSecond,2,0,"myTestFunctionSecond"));
+    // RootedValue v(cx);
+    // bool success_1 = JS_CallFunction(cx, global_obj,func,args,&v);
+
+    // RootedString str(cx, ToString(cx, v));
+    // if (!str)
+    //     return false;
+
+    // str->dumpRepresentation(stderr, 0);
+
+    // //JSObject* global_obj = JS_GetGlobalForObject(cx,obj);
+
+    //RootedObject obj2 (cx,js::InitProxyClass(cx,global_obj));
+    // //RootedObject obj2 = js::InitProxyClass(cx,global_obj);
+
+    // //Checking if obj2 is prototype
+    // if(obj2!=NULL)
+    // {
+    //     printf("An object\n");
+    // }
+    // else{
+    //     printf("Not an object\n");
+    // }
+
+
+    //js::proxy(cx,argc,vp);
+    //JSObject* obj3 = &args.rval().toObject();
+    //RootedObject obj3 (cx,args.rval());
+    /*RootedString str(cx, ToString(cx, args.get(0)));
+    if (!str)
+        return false;
+
+    str->dumpRepresentation(stderr, 0);*/
+
+    /*if(!JS_DefineFunction(cx,global_obj,"test",object_method_another,0,0))
+          return nullptr;*/
+    // if (length==2)
+    // {
+    //     if (args.get(1).isObject())
+    //     {
+    //         RootedObject obj4(cx,&args.get(1).toObject());
+    //         args.rval().setObject(*obj4); 
+    //     }
+    //     else
+    //     {
+    //         args.rval().setUndefined();
+    //     }
+    // }
+    // else {
+    //     args.rval().setUndefined();
+    // }
+}
+
+bool
+js::equals(JSContext* cx, unsigned argc, Value* vp)
+{
+    
+    argc += 1;
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    //Getting the parent object
+    RootedValue current_val(cx,args.thisv());
+    RootedObject current_object(cx,&current_val.toObject());
+    RootedValue third_argument(cx);
+    JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+    if(third_argument.isObject())
+        args[2].set(third_argument);
+
+    //Creating a Dummy Plain Object to access underlying equals method
+    //RootedObject temp_obj(cx,JS_NewObject(cx,nullptr));
+    RootedObject param_obj(cx,&args[0].toObject());
+
+    RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
+
+    //Getting the Constructor for Object to call .equals on it
+    /*const Class* clasp = &js::PlainObject::class_;
+    JSProtoKey protoKey = JSProto_Object;
+    RootedObject ctor(cx, clasp->spec.createConstructorHook()(cx, protoKey));*/
+
+    RootedFunction realm_equal_func(cx,JS_NewFunction(cx,realm_equals,3,0,"object_equals_func"));
+    RootedValue v(cx);
+    bool result = JS_CallFunction(cx, global_obj,realm_equal_func,args,&v);
+
+    if(v.isBoolean())
+    {
+        bool return_val = JS::ToBoolean(v);
+        args.rval().setBoolean(return_val);
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
+    
+
+    
+
+
+    return true;
+
+}
+
+bool
+js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
+{
+    /* Creating a new Realm Object and setting a Secret Token on it */
+    CallArgs args = CallArgsFromVp(argc,vp);
+    if(args.length()>0)
+        return false;
+    RootedObject realm_obj(cx,JS_NewObject(cx,nullptr));
+    //RootedString secret_token(cx, JS_NewStringCopyZ(cx, "Secret Token")); 
+    //RootedValue val(cx,JS::StringValue(secret_token));
+    RootedObject obj_token(cx,JS_NewObject(cx,nullptr));
+    RootedValue val(cx,JS::ObjectValue(*obj_token));
+    if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
+        return false;
+
+    if(!JS_DefineFunction(cx,realm_obj,"CreateTransparentProxy",CreateTransparentProxy,3,0))
+        return nullptr;
+
+    if(!JS_DefineFunction(cx,realm_obj,"equals",equals,2,0))
+        return nullptr;
+
+
+    args.rval().setObject(*realm_obj);
     return true;
 }
 
@@ -1303,11 +1520,11 @@ js::tProxy(JSContext* cx, unsigned argc, Value* vp)
         return nullptr;
 
     if (!args.isConstructing()) {
-        JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_FUNCTION, "TProxy");
+        JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_FUNCTION, "TransparentProxy");
         return false;
     }
 
-    return NewScriptedProxy(cx, args, "TProxy");
+    return NewScriptedProxy(cx, args, "TransparentProxy");
 }
 
 static bool

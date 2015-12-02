@@ -116,6 +116,21 @@ ConstructorFunctionByUser(JSContext* cx,unsigned argc,Value* vp);
 bool
 object_method(JSContext* cx,unsigned argc,Value* vp);
 
+bool
+CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp);
+
+bool
+equals(JSContext* cx, unsigned argc, Value* vp);
+
+bool
+CreateRealm(JSContext* cx, unsigned argc, Value* vp);
+
+bool
+realm_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *secret, MutableHandleValue res);
+
+bool
+realm_equals(JSContext* cx,unsigned argc,Value* vp);
+
 } /* namespace js */
 
 #endif /* proxy_ScriptedDirectProxyHandler_h */
