@@ -1292,6 +1292,56 @@ js::object_method(JSContext* cx,unsigned argc,Value* vp)
     return true;
 }
 
+bool
+js::CreateRealmWeakMap(JSContext* cx,unsigned argc,Value* vp)
+{
+    // Working Call for Constructing a setting WeakMaps on Realm
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    RootedFunction func_proxy(cx,JS_NewFunction(cx,WeakMap_construct,0,JSFUN_CONSTRUCTOR,"WeakMap"));
+    RootedValue v(cx);
+    RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
+    RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
+    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+
+    if(v.isObject())
+    {
+        RootedObject obj4(cx,&v.toObject());
+        args.rval().setObject(*obj4);    
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
+
+    return true;
+}
+
+bool
+js::CreateRealmWeakSet(JSContext* cx,unsigned argc,Value* vp)
+{
+    // Working Call for Constructing a setting WeakMaps on Realm
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    RootedFunction func_proxy(cx,JS_NewFunction(cx,WeakSetObject::construct,0,JSFUN_CONSTRUCTOR,"WeakSet"));
+    RootedValue v(cx);
+    RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
+    RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
+    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+
+    if(v.isObject())
+    {
+        RootedObject obj4(cx,&v.toObject());
+        args.rval().setObject(*obj4);    
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
+
+    return true;
+}
+
 //TransparnetProxy methods
 
 bool
@@ -1498,7 +1548,15 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
         return false;
 
-    if(!JS_DefineFunction(cx,realm_obj,"CreateTransparentProxy",CreateTransparentProxy,3,0))
+    if(!JS_DefineFunction(cx,realm_obj,"Constructor",CreateTransparentProxy,3,0))
+        return nullptr;
+
+    //Defining the Weakmaps on realm object
+    if(!JS_DefineFunction(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,0))
+        return nullptr;
+
+    //Defining the WeakSet on realm object
+    if(!JS_DefineFunction(cx,realm_obj,"WeakSet",CreateRealmWeakSet,0,0))
         return nullptr;
 
     if(!JS_DefineFunction(cx,realm_obj,"equals",equals,2,0))

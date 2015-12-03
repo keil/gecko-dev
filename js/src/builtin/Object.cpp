@@ -1043,7 +1043,19 @@ js::obj_equals(JSContext* cx,unsigned argc,Value* vp)
         return js::obj_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
     }
 
-    args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));
+    //Handling the primitive values
+    if(args[0].isObject()&&args[1].isObject())
+    {
+        args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));    
+    }
+    else
+    {
+        double lval = 0;
+        double rval = 0;
+        bool success_lval = JS::ToNumber(cx,args[0],&lval);
+        bool success_rval = JS::ToNumber(cx,args[1],&rval);
+        args.rval().setBoolean(lval==rval);
+    }
     return true;
 }
 

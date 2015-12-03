@@ -9,6 +9,7 @@
 
 #include "js/Proxy.h"
 #include "Proxy.h"
+#include "builtin/WeakSetObject.h"
 
 namespace js {
 
@@ -130,6 +131,13 @@ realm_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *s
 
 bool
 realm_equals(JSContext* cx,unsigned argc,Value* vp);
+
+bool
+CreateRealmWeakMap(JSContext* cx,unsigned argc,Value* vp);
+
+bool
+CreateRealmWeakSet(JSContext* cx,unsigned argc,Value* vp);
+
 
 } /* namespace js */
 

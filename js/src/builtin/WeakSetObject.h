@@ -18,13 +18,14 @@ class WeakSetObject : public NativeObject
 
     static JSObject* initClass(JSContext* cx, JSObject* obj);
     static const Class class_;
+    static bool construct(JSContext* cx, unsigned argc, Value* vp);
 
   private:
     static const JSPropertySpec properties[];
     static const JSFunctionSpec methods[];
 
     static WeakSetObject* create(JSContext* cx);
-    static bool construct(JSContext* cx, unsigned argc, Value* vp);
+    
 };
 
 extern JSObject*

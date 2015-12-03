@@ -845,7 +845,7 @@ js::InitTProxyClass(JSContext* cx, HandleObject obj)
     global->setConstructor(JSProto_TransparentProxy, ObjectValue(*ctor));
 
     //Creating the Constructor method for TransparentProxy
-    if(!JS_DefineFunction(cx,ctor,"createRealm",CreateRealm,0,0))
+    if(!JS_DefineFunction(cx,ctor,"CreateRealm",CreateRealm,0,0))
           return nullptr;
 
     return ctor;
