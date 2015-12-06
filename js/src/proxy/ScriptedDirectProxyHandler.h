@@ -139,6 +139,10 @@ bool
 CreateRealmWeakSet(JSContext* cx,unsigned argc,Value* vp);
 
 
+
+
+
+
 } /* namespace js */
 
 #endif /* proxy_ScriptedDirectProxyHandler_h */

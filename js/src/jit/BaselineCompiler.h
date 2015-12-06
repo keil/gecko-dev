@@ -243,6 +243,7 @@ class BaselineCompiler : public BaselineCompilerSpecific
 
     MethodStatus compile();
 
+    bool NewTransparentObject(JSContext* cx,unsigned argc,Value* vp);
   private:
     MethodStatus emitBody();
 
