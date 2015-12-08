@@ -1040,9 +1040,18 @@ EqualGivenSameType(JSContext* cx, HandleValue lval, HandleValue rval, bool* equa
     if (lval.isGCThing()) {  // objects or symbols
         //*equal = (lval.toGCThing() == rval.toGCThing());
 
-        JSObject* l = GetIdentityObject(&lval.toObject());
-        JSObject* r = GetIdentityObject(&rval.toObject());
-        *equal = l == r;
+        if(lval.isObject())
+        {
+            JSObject* l = GetIdentityObject(&lval.toObject());
+            JSObject* r = GetIdentityObject(&rval.toObject());
+            *equal = l == r;
+        }
+        else
+        {
+            *equal = (lval.toGCThing() == rval.toGCThing());
+        }
+        
+        
 
         return true;
     }
