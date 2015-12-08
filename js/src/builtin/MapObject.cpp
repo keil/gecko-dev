@@ -98,7 +98,7 @@ HashableValue::operator==(const HashableValue& other) const
     else
         otherVal = other.value;
 
-    bool b = (val == otherVal);
+    bool b = (val.asRawBits() == otherVal.asRawBits());
 
 #ifdef DEBUG
     bool same;
