@@ -1040,7 +1040,15 @@ js::obj_equals(JSContext* cx,unsigned argc,Value* vp)
     }
 
     if(args.length()>2){
-        return js::obj_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+        if(args[0].isObject()&&args[1].isObject()&&args[2].isObject())
+        {
+            return js::obj_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+        }
+        if(!args[2].isObject())
+        {
+            JS_ReportErrorNumber(cx,GetErrorMessage,nullptr,JSMSG_NOT_NONNULL_OBJECT,"3rd Argument");
+            return false;
+        }
     }
 
     //Handling the primitive values

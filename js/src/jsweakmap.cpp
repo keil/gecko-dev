@@ -231,7 +231,8 @@ WeakMap_has_impl(JSContext* cx, CallArgs args)
     }
 
     if (ObjectValueMap* map = args.thisv().toObject().as<WeakMapObject>().getMap()) {
-        JSObject* key = &args[0].toObject();
+        
+        JSObject* key = GetIdentityObject(&args[0].toObject()); 
         if (map->has(key)) {
             args.rval().setBoolean(true);
             return true;
@@ -281,7 +282,7 @@ WeakMap_get_impl(JSContext* cx, CallArgs args)
     }
 
     if (ObjectValueMap* map = args.thisv().toObject().as<WeakMapObject>().getMap()) {
-        JSObject* key = &args[0].toObject();
+        JSObject* key = GetIdentityObject(&args[0].toObject()); 
         if (ObjectValueMap::Ptr ptr = map->lookup(key)) {
             args.rval().set(ptr->value());
             return true;

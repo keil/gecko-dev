@@ -1252,12 +1252,13 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
 
     // Step 10.
     args.rval().setObject(*proxy);
-
+    
+    /*
     if(callerName=="TransparentProxy")
     {
-        if(!JS_DefineFunction(cx,proxy,"constructor",ConstructorFunctionByUser,2,0))
+        if(!JS_DefineFunction(cx,proxy,"constructoring",ConstructorFunctionByUser,2,0))
             return nullptr;    
-    }
+    }*/
 
     return true;
 }
@@ -1384,10 +1385,25 @@ js::realm_equals(JSContext* cx,unsigned argc,Value* vp)
     }
 
     if(args.length()>2){
-        return realm_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+        if(args[0].isObject()&&args[1].isObject()&&args[2].isObject())
+        {
+            return realm_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+        }
     }
 
-    args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));
+    //Handling the primitive values
+    if(args[0].isObject()&&args[1].isObject())
+    {
+        args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));    
+    }
+    else
+    {
+        double lval = 0;
+        double rval = 0;
+        bool success_lval = JS::ToNumber(cx,args[0],&lval);
+        bool success_rval = JS::ToNumber(cx,args[1],&rval);
+        args.rval().setBoolean(lval==rval);
+    }
     return true;
 }
 
@@ -1548,7 +1564,7 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
         return false;
 
-    if(!JS_DefineFunction(cx,realm_obj,"Constructor",CreateTransparentProxy,3,0))
+    if(!JS_DefineFunction(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0))
         return nullptr;
 
     //Defining the Weakmaps on realm object
@@ -1573,9 +1589,9 @@ js::tProxy(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc, vp);
 
     //Defining Custom Function
-    RootedObject global (cx,JS_GetGlobalForObject(cx, &args.callee()));
+    /*RootedObject global (cx,JS_GetGlobalForObject(cx, &args.callee()));
     if (!JS_DefineFunction(cx, global, "object_method", object_method, 0, 0))
-        return nullptr;
+        return nullptr;*/
 
     if (!args.isConstructing()) {
         JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_FUNCTION, "TransparentProxy");
