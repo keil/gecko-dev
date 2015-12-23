@@ -1240,6 +1240,12 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
 
     //For extra Parameter
     if(args.length()>2){
+        //A check to see if the token is an object
+        if(!args[2].isObject())
+        {
+            JS_ReportErrorNumber(cx,GetErrorMessage,nullptr,JSMSG_NOT_NONNULL_OBJECT,"3rd Argument");
+            return false;
+        }
         JSObject* obj_44 = &args[2].toObject();
         proxy->setExtra(2,ObjectValue(*obj_44));
     }

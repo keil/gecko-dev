@@ -863,3 +863,23 @@ js::GetIdentityObject(JSObject *obj)
         return GetIdentityObject(retObj);
     }
 }
+
+JS_FRIEND_API(JSObject *)
+js::GetIdentityObjectWithTokens(JSObject* obj,JSObject* token)
+{
+    JSObject *retObj = CheckedUnwrap(obj);
+
+    if (!IsTransparentProxy(retObj))
+        return retObj;
+    else {
+        if(retObj->as<js::ProxyObject>().extra(2).isObject())
+        {
+            JSObject *capability = &retObj->as<js::ProxyObject>().extra(2).toObject();
+            if (capability == token)
+                return retObj;
+        }
+        retObj = GetProxyTargetObject(retObj);
+        return GetIdentityObjectWithTokens(retObj,token);
+    }
+
+}

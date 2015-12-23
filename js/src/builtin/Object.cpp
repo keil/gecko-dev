@@ -1076,16 +1076,20 @@ js::obj_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject 
         if(temp->isObject()||temp->isNumber()||temp->isString())
         {
             JSObject *capability = &lhs->as<js::ProxyObject>().extra(2).toObject();
-            if (capability == secret)
-                doRefEq = true;
+            if (capability != secret)
+                lhs = GetIdentityObjectWithTokens(lhs,secret);
+            
+            doRefEq = true;
         }
     }
     if (IsTransparentProxy(rhs)) {
         if(rhs->as<js::ProxyObject>().extra(2).isObject())
         {
             JSObject *capability = &rhs->as<js::ProxyObject>().extra(2).toObject();
-            if (capability == secret)
-                doRefEq = true;
+            if (capability != secret)
+                rhs = GetIdentityObjectWithTokens(rhs,secret);
+                
+            doRefEq = true;
         }
     }
     if (doRefEq)
