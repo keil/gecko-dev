@@ -133,6 +133,12 @@ bool
 realm_equals(JSContext* cx,unsigned argc,Value* vp);
 
 bool
+CreateRealmMap(JSContext* cx,unsigned argc,Value* vp);
+
+bool
+CreateRealmSet(JSContext* cx,unsigned argc,Value* vp);
+
+bool
 CreateRealmWeakMap(JSContext* cx,unsigned argc,Value* vp);
 
 bool

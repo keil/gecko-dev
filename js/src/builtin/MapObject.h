@@ -108,6 +108,8 @@ class MapObject : public NativeObject {
     static bool clear(JSContext *cx, HandleObject obj);
     static bool iterator(JSContext *cx, IteratorKind kind, HandleObject obj, MutableHandleValue iter);
 
+    static bool construct(JSContext* cx, unsigned argc, Value* vp);
+
   private:
     static const JSPropertySpec properties[];
     static const JSFunctionSpec methods[];
@@ -117,7 +119,7 @@ class MapObject : public NativeObject {
     static ValueMap & extract(CallReceiver call);
     static void mark(JSTracer* trc, JSObject* obj);
     static void finalize(FreeOp* fop, JSObject* obj);
-    static bool construct(JSContext* cx, unsigned argc, Value* vp);
+    
 
     static bool is(HandleValue v);
     static bool is(HandleObject o);
@@ -188,6 +190,8 @@ class SetObject : public NativeObject {
     static bool iterator(JSContext *cx, IteratorKind kind, HandleObject obj, MutableHandleValue iter);
     static bool delete_(JSContext *cx, HandleObject obj, HandleValue key, bool *rval);
 
+    static bool construct(JSContext* cx, unsigned argc, Value* vp);
+
   private:
     static const JSPropertySpec properties[];
     static const JSFunctionSpec methods[];
@@ -197,7 +201,7 @@ class SetObject : public NativeObject {
     static ValueSet & extract(CallReceiver call);
     static void mark(JSTracer* trc, JSObject* obj);
     static void finalize(FreeOp* fop, JSObject* obj);
-    static bool construct(JSContext* cx, unsigned argc, Value* vp);
+    
 
     static bool is(HandleValue v);
     static bool is(HandleObject o);

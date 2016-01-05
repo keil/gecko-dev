@@ -1300,12 +1300,62 @@ js::object_method(JSContext* cx,unsigned argc,Value* vp)
 }
 
 bool
+js::CreateRealmMap(JSContext* cx,unsigned argc,Value* vp)
+{
+    // Working Call for Constructing a setting Map on Realm
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    RootedFunction func_proxy(cx,JS_NewFunction(cx,MapObject::construct,0,JSFUN_CONSTRUCTOR,"Map"));
+    RootedValue v(cx);
+    RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
+    RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
+    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+
+    if(v.isObject())
+    {
+        RootedObject obj4(cx,&v.toObject());
+        args.rval().setObject(*obj4);    
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
+
+    return true;
+}
+
+bool
 js::CreateRealmWeakMap(JSContext* cx,unsigned argc,Value* vp)
 {
     // Working Call for Constructing a setting WeakMaps on Realm
     CallArgs args = CallArgsFromVp(argc,vp);
 
     RootedFunction func_proxy(cx,JS_NewFunction(cx,WeakMap_construct,0,JSFUN_CONSTRUCTOR,"WeakMap"));
+    RootedValue v(cx);
+    RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
+    RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
+    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+
+    if(v.isObject())
+    {
+        RootedObject obj4(cx,&v.toObject());
+        args.rval().setObject(*obj4);    
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
+
+    return true;
+}
+
+bool
+js::CreateRealmSet(JSContext* cx,unsigned argc,Value* vp)
+{
+    // Working Call for Constructing a setting WeakMaps on Realm
+    CallArgs args = CallArgsFromVp(argc,vp);
+
+    RootedFunction func_proxy(cx,JS_NewFunction(cx,SetObject::construct,0,JSFUN_CONSTRUCTOR,"Set"));
     RootedValue v(cx);
     RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
     RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
@@ -1571,6 +1621,14 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
         return false;
 
     if(!JS_DefineFunction(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0))
+        return nullptr;
+
+    //Defining the maps on realm object
+    if(!JS_DefineFunction(cx,realm_obj,"Map",CreateRealmMap,0,0))
+        return nullptr;
+
+    //Defining the maps on realm object
+    if(!JS_DefineFunction(cx,realm_obj,"Set",CreateRealmSet,0,0))
         return nullptr;
 
     //Defining the Weakmaps on realm object
