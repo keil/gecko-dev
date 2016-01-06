@@ -353,7 +353,10 @@ MapObject::mark(JSTracer* trc, JSObject* obj)
 
 struct UnbarrieredHashPolicy {
     typedef Value Lookup;
-    static HashNumber hash(const Lookup& v) { return v.asRawBits(); }
+    static HashNumber hash(const Lookup& v) { 
+        Value temp = ObjectValue(*GetIdentityObject(&v.toObject()));
+        return temp.asRawBits(); 
+    }
     static bool match(const Value& k, const Lookup& l) { return k == l; }
     static bool isEmpty(const Value& v) { return v.isMagic(JS_HASH_KEY_EMPTY); }
     static void makeEmpty(Value* vp) { vp->setMagic(JS_HASH_KEY_EMPTY); }
