@@ -69,8 +69,8 @@ HashableValue::hash() const
     // HashableValue::setValue normalizes values so that the SameValue relation
     // on HashableValues is the same as the == relationship on
     // value.data.asBits.
-    if (value.isObject())
-        return DefaultHasher<JSObject *>::hash(GetIdentityObject(&value.toObject()));
+    /*if (value.isObject())
+        return DefaultHasher<JSObject *>::hash(GetIdentityObject(&value.toObject()));*/
     return value.asRawBits();
 }
 
@@ -354,8 +354,18 @@ MapObject::mark(JSTracer* trc, JSObject* obj)
 struct UnbarrieredHashPolicy {
     typedef Value Lookup;
     static HashNumber hash(const Lookup& v) { 
-        Value temp = ObjectValue(*GetIdentityObject(&v.toObject()));
-        return temp.asRawBits(); 
+        /*
+        if (v.isObject())
+        {
+            
+            JSObject* temp = &v.toObject();
+            JSObject *retObj = CheckedUnwrap(temp);
+            if (!IsTransparentProxy(retObj))
+                return v.asRawBits();
+            else
+                return DefaultHasher<JSObject *>::hash(GetIdentityObject(&v.toObject()));    
+        }*/
+        return v.asRawBits(); 
     }
     static bool match(const Value& k, const Lookup& l) { return k == l; }
     static bool isEmpty(const Value& v) { return v.isMagic(JS_HASH_KEY_EMPTY); }
@@ -1279,6 +1289,10 @@ bool
 SetObject::has(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(IsTransparentProxy(&args[0].toObject()))
+    {
+        args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+    }
     return CallNonGenericMethod<SetObject::is, SetObject::has_impl>(cx, args);
 }
 
@@ -1302,6 +1316,10 @@ bool
 SetObject::add(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(IsTransparentProxy(&args[0].toObject()))
+    {
+        args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+    }
     return CallNonGenericMethod<SetObject::is, SetObject::add_impl>(cx, args);
 }
 
