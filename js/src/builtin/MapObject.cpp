@@ -644,6 +644,13 @@ bool
 MapObject::get(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args[0].isObject())
+    {
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+        }
+    }
     return CallNonGenericMethod<MapObject::is, MapObject::get_impl>(cx, args);
 }
 
@@ -676,6 +683,13 @@ bool
 MapObject::has(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args[0].isObject())
+    {
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+        }
+    }
     return CallNonGenericMethod<MapObject::is, MapObject::has_impl>(cx, args);
 }
 
@@ -700,6 +714,13 @@ bool
 MapObject::set(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args[0].isObject())
+    {
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+        }
+    }
     return CallNonGenericMethod<MapObject::is, MapObject::set_impl>(cx, args);
 }
 
@@ -1289,9 +1310,12 @@ bool
 SetObject::has(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    if(IsTransparentProxy(&args[0].toObject()))
+    if(args[0].isObject())
     {
-        args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+        }
     }
     return CallNonGenericMethod<SetObject::is, SetObject::has_impl>(cx, args);
 }
@@ -1316,9 +1340,12 @@ bool
 SetObject::add(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    if(IsTransparentProxy(&args[0].toObject()))
+    if(args[0].isObject())
     {
-        args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+        }
     }
     return CallNonGenericMethod<SetObject::is, SetObject::add_impl>(cx, args);
 }
