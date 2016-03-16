@@ -1471,7 +1471,16 @@ js::CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc,vp);
 
     //Getting the parent object
-    RootedValue current_val(cx,args.thisv());
+    //RootedValue current_val(cx,args.thisv());
+
+    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+    //Checking if the constructor is being called without bind()
+    // if(!current_val.isObject())
+    // {
+        
+    // }
+    
+
     RootedObject current_object(cx,&current_val.toObject());
     RootedValue third_argument(cx);
     JS_GetProperty(cx,current_object,"secretToken",&third_argument);
@@ -1620,8 +1629,15 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
         return false;
 
-    if(!JS_DefineFunction(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0))
-        return nullptr;
+    //Defining a Proxy Function on realm
+    //if(!JS_DefineFunction(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0))
+    //    return nullptr;
+
+    //Getting the Proxy function and setting the realm object in its reserved slot
+    RootedFunction temp_func(cx,DefineFunctionWithReserved(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0));
+    temp_func->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+
+
 
     //Defining the maps on realm object
     if(!JS_DefineFunction(cx,realm_obj,"Map",CreateRealmMap,0,0))
