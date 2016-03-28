@@ -1482,8 +1482,12 @@ js::CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
     
 
     RootedObject current_object(cx,&current_val.toObject());
-    RootedValue third_argument(cx);
-    JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+    RootedValue third_argument(cx,ObjectValue(*current_object));
+    
+    //The Default working way to get secret token
+    //JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+    
+
     if(third_argument.isObject())
         args[2].set(third_argument);
 
@@ -1576,8 +1580,14 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
     //Getting the parent object
     RootedValue current_val(cx,args.thisv());
     RootedObject current_object(cx,&current_val.toObject());
-    RootedValue third_argument(cx);
-    JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+    
+
+    //The Default working way to get secret token
+    //JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+
+    //The alternative way to get secret token
+    RootedValue third_argument(cx,ObjectValue(*current_object));
+
     if(third_argument.isObject())
         args[2].set(third_argument);
 
@@ -1621,22 +1631,30 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc,vp);
     if(args.length()>0)
         return false;
+
+    //Default working way to create a realm object
     RootedObject realm_obj(cx,JS_NewObject(cx,nullptr));
+
     //RootedString secret_token(cx, JS_NewStringCopyZ(cx, "Secret Token")); 
     //RootedValue val(cx,JS::StringValue(secret_token));
     RootedObject obj_token(cx,JS_NewObject(cx,nullptr));
     RootedValue val(cx,JS::ObjectValue(*obj_token));
-    if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
-        return false;
+
+    //This line works see below line for details on why it is commented out
+    //if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
+    //    return false;
+
+    //Defining Property in another way so that the property is readonly
+    //if(!JS_DefineProperty(cx, realm_obj, "secretToken",val,JSPROP_READONLY))
+    //    return false;
 
     //Defining a Proxy Function on realm
     //if(!JS_DefineFunction(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0))
     //    return nullptr;
 
     //Getting the Proxy function and setting the realm object in its reserved slot
-    RootedFunction temp_func(cx,DefineFunctionWithReserved(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0));
+    RootedFunction temp_func(cx,DefineFunctionWithReserved(cx,realm_obj,"Proxy",CreateTransparentProxy,3,JSFUN_CONSTRUCTOR));
     temp_func->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
-
 
 
     //Defining the maps on realm object
