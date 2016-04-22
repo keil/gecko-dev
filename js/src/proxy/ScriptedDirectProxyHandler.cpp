@@ -1578,7 +1578,8 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc,vp);
 
     //Getting the parent object
-    RootedValue current_val(cx,args.thisv());
+    //RootedValue current_val(cx,args.thisv());
+    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
     RootedObject current_object(cx,&current_val.toObject());
     
 
@@ -1658,23 +1659,33 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
 
 
     //Defining the maps on realm object
-    if(!JS_DefineFunction(cx,realm_obj,"Map",CreateRealmMap,0,0))
-        return nullptr;
+    RootedFunction temp_func3(cx,DefineFunctionWithReserved(cx,realm_obj,"Map",CreateRealmMap,0,JSFUN_CONSTRUCTOR));
+    temp_func3->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+    //if(!JS_DefineFunction(cx,realm_obj,"Map",CreateRealmMap,0,0))
+    //    return nullptr;
 
     //Defining the maps on realm object
-    if(!JS_DefineFunction(cx,realm_obj,"Set",CreateRealmSet,0,0))
-        return nullptr;
+    RootedFunction temp_func4(cx,DefineFunctionWithReserved(cx,realm_obj,"Set",CreateRealmSet,0,JSFUN_CONSTRUCTOR));
+    temp_func4->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+    //if(!JS_DefineFunction(cx,realm_obj,"Set",CreateRealmSet,0,0))
+    //    return nullptr;
 
     //Defining the Weakmaps on realm object
-    if(!JS_DefineFunction(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,0))
-        return nullptr;
+    RootedFunction temp_func5(cx,DefineFunctionWithReserved(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,JSFUN_CONSTRUCTOR));
+    temp_func5->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+    //if(!JS_DefineFunction(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,0))
+    //    return nullptr;
 
     //Defining the WeakSet on realm object
-    if(!JS_DefineFunction(cx,realm_obj,"WeakSet",CreateRealmWeakSet,0,0))
-        return nullptr;
+    RootedFunction temp_func6(cx,DefineFunctionWithReserved(cx,realm_obj,"WeakSet",CreateRealmWeakSet,0,JSFUN_CONSTRUCTOR));
+    temp_func6->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+    //if(!JS_DefineFunction(cx,realm_obj,"WeakSet",CreateRealmWeakSet,0,0))
+    //    return nullptr;
 
-    if(!JS_DefineFunction(cx,realm_obj,"equals",equals,2,0))
-        return nullptr;
+    RootedFunction temp_func2(cx,DefineFunctionWithReserved(cx,realm_obj,"equals",equals,2,0));
+    temp_func2->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+    //if(!JS_DefineFunction(cx,realm_obj,"equals",equals,2,0))
+    //    return nullptr;
 
 
     args.rval().setObject(*realm_obj);
