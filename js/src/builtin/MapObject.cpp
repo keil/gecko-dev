@@ -246,7 +246,7 @@ MapIteratorObject::next(JSContext* cx, Handle<MapIteratorObject*> mapIterator,
 const Class MapObject::class_ = {
     "Map",
     JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS |
-    JSCLASS_HAS_CACHED_PROTO(JSProto_Map),
+    JSCLASS_HAS_CACHED_PROTO(JSProto_Map)|JSCLASS_HAS_RESERVED_SLOTS(1),
     nullptr, // addProperty
     nullptr, // delProperty
     nullptr, // getProperty
@@ -711,11 +711,48 @@ MapObject::set_impl(JSContext* cx, CallArgs args)
 }
 
 bool
+MapObject::reservedSlotHasObject(JSContext* cx, unsigned argc, Value* vp)
+{
+    return true;
+}
+
+bool
 MapObject::set(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     if(args[0].isObject())
     {
+        //Checking if the map object is part of a realm.
+        //Getting the map object on which set function is being applied
+        RootedValue current_map(cx,args.thisv());
+
+        //A dummy object if the map is not part of realm
+        RootedObject emptyObject(cx);
+        
+        //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
+        bool someVal = false;
+
+        if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
+        {
+            someVal = true;
+        }
+              
+        //RootedValue* realm2 = someVal ? RootedValue(cx,JS_GetReservedSlot(&current_map.toObject(),0)) : RootedValue(cx,JS_GetReservedSlot(&current_map.toObject(),0))
+        RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0));    
+        RootedObject ozz(cx,&realm.toObject());
+    
+        
+            
+
+        //Getting the realm object of the target if any
+        JSObject* obj_temp = &args[0].toObject();
+        const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
+        RootedObject ojj(cx,&set_object_realm->toObject());
+
+        if(ozz==ojj)
+            RootedValue val(cx);
+
+        
         if(IsTransparentProxy(&args[0].toObject()))
         {
             args[0].setObject(*GetIdentityObject(&args[0].toObject()));

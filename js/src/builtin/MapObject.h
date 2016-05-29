@@ -142,6 +142,8 @@ class MapObject : public NativeObject {
     static bool entries_impl(JSContext* cx, CallArgs args);
     static bool clear_impl(JSContext* cx, CallArgs args);
     static bool clear(JSContext* cx, unsigned argc, Value* vp);
+
+    static bool reservedSlotHasObject(JSContext* cx, unsigned argc, Value* vp);
 };
 
 class MapIteratorObject : public NativeObject

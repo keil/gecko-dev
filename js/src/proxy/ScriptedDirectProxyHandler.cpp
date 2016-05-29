@@ -1302,8 +1302,20 @@ js::object_method(JSContext* cx,unsigned argc,Value* vp)
 bool
 js::CreateRealmMap(JSContext* cx,unsigned argc,Value* vp)
 {
+    //Passing the realm object in the arguments to make Map created from Realm, Realm-aware
+    //argc += 1;
+
     // Working Call for Constructing a setting Map on Realm
     CallArgs args = CallArgsFromVp(argc,vp);
+
+    //Extracting the realm object
+    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));    
+    RootedObject current_object(cx,&current_val.toObject());
+    RootedValue third_argument(cx,ObjectValue(*current_object));
+    
+    //Passing the Realm Object to make sure 
+    //if(third_argument.isObject())
+    //    args[0].set(third_argument);
 
     RootedFunction func_proxy(cx,JS_NewFunction(cx,MapObject::construct,0,JSFUN_CONSTRUCTOR,"Map"));
     RootedValue v(cx);
@@ -1314,6 +1326,8 @@ js::CreateRealmMap(JSContext* cx,unsigned argc,Value* vp)
     if(v.isObject())
     {
         RootedObject obj4(cx,&v.toObject());
+        //Attaching the realm object with the map object so that it can used in the process of making realm aware.
+        JS_SetReservedSlot(obj4,0,third_argument);
         args.rval().setObject(*obj4);    
     }
     else
