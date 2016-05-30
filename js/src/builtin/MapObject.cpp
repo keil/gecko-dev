@@ -685,9 +685,39 @@ MapObject::has(JSContext* cx, unsigned argc, Value* vp)
     CallArgs args = CallArgsFromVp(argc, vp);
     if(args[0].isObject())
     {
+        //Checking if the map object is part of a realm.
+        //Getting the map object on which set function is being applied
+        RootedValue current_map(cx,args.thisv());
+
+        //A dummy object if the map is not part of realm
+        RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
+        RootedValue emptyVal(cx);
+        JS_SetReservedSlot(emptyObject,0,emptyVal);
+        
+        bool someVal = false;
+        
+        //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
+        if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
+        {
+            someVal = true;
+        }
+              
+        RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0)); 
+        RootedObject ozz(cx,someVal ? &realm.toObject():emptyObject);
+        
         if(IsTransparentProxy(&args[0].toObject()))
         {
-            args[0].setObject(*GetIdentityObject(&args[0].toObject()));
+            //Getting the realm object of the target if any
+            JSObject* obj_temp = &args[0].toObject();
+            const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
+            RootedObject ojj(cx,&set_object_realm->toObject());
+            //If both the objects are equals it means set/map and the object have the same realm
+            //Hence to set/map the object is opaque and so it is directly applied to set/map
+            //if not equals then the object are from different realms hence the object is transparent
+            if(ozz==ojj)
+                args[0].setObject(args[0].toObject());
+            else
+                args[0].setObject(*GetIdentityObject(&args[0].toObject()));
         }
     }
     return CallNonGenericMethod<MapObject::is, MapObject::has_impl>(cx, args);
@@ -727,11 +757,9 @@ MapObject::set(JSContext* cx, unsigned argc, Value* vp)
         RootedValue current_map(cx,args.thisv());
 
         //A dummy object if the map is not part of realm
-        //RootedString name_str(cx, JS_NewStringCopyZ(cx, "Dave"));
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
         RootedValue emptyVal(cx);
         JS_SetReservedSlot(emptyObject,0,emptyVal);
-        
         
         bool someVal = false;
         
@@ -743,11 +771,6 @@ MapObject::set(JSContext* cx, unsigned argc, Value* vp)
               
         RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0)); 
         RootedObject ozz(cx,someVal ? &realm.toObject():emptyObject);
-    
-        
-
-        
-
         
         if(IsTransparentProxy(&args[0].toObject()))
         {
@@ -755,6 +778,9 @@ MapObject::set(JSContext* cx, unsigned argc, Value* vp)
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
             RootedObject ojj(cx,&set_object_realm->toObject());
+            //If both the objects are equals it means set/map and the object have the same realm
+            //Hence to set/map the object is opaque and so it is directly applied to set/map
+            //if not equals then the object are from different realms hence the object is transparent
             if(ozz==ojj)
                 args[0].setObject(args[0].toObject());
             else
