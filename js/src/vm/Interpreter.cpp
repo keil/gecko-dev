@@ -1039,7 +1039,32 @@ EqualGivenSameType(JSContext* cx, HandleValue lval, HandleValue rval, bool* equa
     }
     if (lval.isGCThing()) {  // objects or symbols
         //*equal = (lval.toGCThing() == rval.toGCThing());
-
+        
+        //Code for Resolving the ifDef_debug line# 105 Bug on MapObject.cpp
+        /*
+        if(lval.isObject()&&rval.isObject())
+        {
+            //RootedObject lval_obj(cx,&lval.toObject());
+            //RootedObject rval_obj(cx,&rval.toObject());
+            JSObject *lval_obj = &lval.toObject();
+            JSObject *rval_obj = &rval.toObject();
+            //const JS::Value* set_object_realm = &lval_obj->as<js::ProxyObject>().extra(2);
+            //RootedValue set_object_realm(cx,ObjectValue(*lval_obj->as<js::ProxyObject>().extra(2).toObjectOrNull()));
+            if(lval_obj->is<js::ProxyObject>()&&rval_obj->is<js::ProxyObject>())
+            {
+                const JS::Value* set_object_realm = &lval_obj->as<js::ProxyObject>().extra(2);
+                const JS::Value* set_object_realm2 = &rval_obj->as<js::ProxyObject>().extra(2);
+                if(set_object_realm->isObject()&&set_object_realm2->isObject())
+                {
+                    *equal = (lval.toGCThing() == rval.toGCThing());
+                    return true;
+                }
+            }
+            JSObject* l = GetIdentityObject(&lval.toObject());
+            JSObject* r = GetIdentityObject(&rval.toObject());
+            *equal = l == r;
+        }
+        */
         if(lval.isObject())
         {
             JSObject* l = GetIdentityObject(&lval.toObject());
@@ -1051,8 +1076,6 @@ EqualGivenSameType(JSContext* cx, HandleValue lval, HandleValue rval, bool* equa
             *equal = (lval.toGCThing() == rval.toGCThing());
         }
         
-        
-
         return true;
     }
     *equal = lval.get().payloadAsRawUint32() == rval.get().payloadAsRawUint32();

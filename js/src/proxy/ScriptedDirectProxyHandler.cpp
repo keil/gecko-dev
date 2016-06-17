@@ -1327,7 +1327,7 @@ js::CreateRealmMap(JSContext* cx,unsigned argc,Value* vp)
     {
         RootedObject obj4(cx,&v.toObject());
         //Attaching the realm object with the map object so that it can used in the process of making realm aware.
-        //JS_SetReservedSlot(obj4,0,third_argument);
+        JS_SetReservedSlot(obj4,0,third_argument);
         args.rval().setObject(*obj4);    
     }
     else
