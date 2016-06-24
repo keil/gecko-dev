@@ -232,7 +232,7 @@ WeakMap_has_impl(JSContext* cx, CallArgs args)
 
     if (ObjectValueMap* map = args.thisv().toObject().as<WeakMapObject>().getMap()) {
         
-        JSObject* key = GetIdentityObject(&args[0].toObject()); 
+        JSObject* key = &args[0].toObject();
         if (map->has(key)) {
             args.rval().setBoolean(true);
             return true;
@@ -247,6 +247,48 @@ bool
 js::WeakMap_has(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args[0].isObject())
+    {
+        //Checking if the map object is part of a realm.
+        //Getting the map object on which set function is being applied
+        RootedValue current_map(cx,args.thisv());
+
+        //A dummy object if the map is not part of realm
+        RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
+        RootedValue emptyVal(cx);
+        JS_SetReservedSlot(emptyObject,0,emptyVal);
+        
+        bool someVal = false;
+        
+        //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
+        if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
+        {
+            someVal = true;
+        }
+              
+        RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0)); 
+        RootedObject realm_object_map(cx,someVal ? &realm.toObject():emptyObject);
+        
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            //Getting the realm object of the target if any
+            JSObject* obj_temp = &args[0].toObject();
+            const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
+            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+
+            //Alternative way not fully tested
+            //RootedObject obj_temp(cx,&args[0].toObject());
+            //RootedValue set_object_realm(cx,ObjectValue(*obj_temp->as<js::ProxyObject>().extra(2).toObjectOrNull()));
+            //RootedObject ojj(cx,&set_object_realm.toObject());
+
+            //If both the objects are equals it means set/map and the object have the same realm
+            //Hence to set/map the object is opaque and so it is directly applied to set/map
+            //if not equals then the object are from different realms hence the object is transparent
+            if(realm_object_map!=realm_object_target)
+                args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
+                
+        }
+    }
     return CallNonGenericMethod<IsWeakMap, WeakMap_has_impl>(cx, args);
 }
 
@@ -282,7 +324,7 @@ WeakMap_get_impl(JSContext* cx, CallArgs args)
     }
 
     if (ObjectValueMap* map = args.thisv().toObject().as<WeakMapObject>().getMap()) {
-        JSObject* key = GetIdentityObject(&args[0].toObject()); 
+        JSObject* key = &args[0].toObject(); 
         if (ObjectValueMap::Ptr ptr = map->lookup(key)) {
             args.rval().set(ptr->value());
             return true;
@@ -297,6 +339,48 @@ bool
 js::WeakMap_get(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args[0].isObject())
+    {
+        //Checking if the map object is part of a realm.
+        //Getting the map object on which set function is being applied
+        RootedValue current_map(cx,args.thisv());
+
+        //A dummy object if the map is not part of realm
+        RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
+        RootedValue emptyVal(cx);
+        JS_SetReservedSlot(emptyObject,0,emptyVal);
+        
+        bool someVal = false;
+        
+        //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
+        if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
+        {
+            someVal = true;
+        }
+              
+        RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0)); 
+        RootedObject realm_object_map(cx,someVal ? &realm.toObject():emptyObject);
+        
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            //Getting the realm object of the target if any
+            JSObject* obj_temp = &args[0].toObject();
+            const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
+            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+
+            //Alternative way not fully tested
+            //RootedObject obj_temp(cx,&args[0].toObject());
+            //RootedValue set_object_realm(cx,ObjectValue(*obj_temp->as<js::ProxyObject>().extra(2).toObjectOrNull()));
+            //RootedObject ojj(cx,&set_object_realm.toObject());
+
+            //If both the objects are equals it means set/map and the object have the same realm
+            //Hence to set/map the object is opaque and so it is directly applied to set/map
+            //if not equals then the object are from different realms hence the object is transparent
+            if(realm_object_map!=realm_object_target)
+                args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
+                
+        }
+    }
     return CallNonGenericMethod<IsWeakMap, WeakMap_get_impl>(cx, args);
 }
 
@@ -327,6 +411,48 @@ bool
 js::WeakMap_delete(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args[0].isObject())
+    {
+        //Checking if the map object is part of a realm.
+        //Getting the map object on which set function is being applied
+        RootedValue current_map(cx,args.thisv());
+
+        //A dummy object if the map is not part of realm
+        RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
+        RootedValue emptyVal(cx);
+        JS_SetReservedSlot(emptyObject,0,emptyVal);
+        
+        bool someVal = false;
+        
+        //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
+        if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
+        {
+            someVal = true;
+        }
+              
+        RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0)); 
+        RootedObject realm_object_map(cx,someVal ? &realm.toObject():emptyObject);
+        
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            //Getting the realm object of the target if any
+            JSObject* obj_temp = &args[0].toObject();
+            const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
+            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+
+            //Alternative way not fully tested
+            //RootedObject obj_temp(cx,&args[0].toObject());
+            //RootedValue set_object_realm(cx,ObjectValue(*obj_temp->as<js::ProxyObject>().extra(2).toObjectOrNull()));
+            //RootedObject ojj(cx,&set_object_realm.toObject());
+
+            //If both the objects are equals it means set/map and the object have the same realm
+            //Hence to set/map the object is opaque and so it is directly applied to set/map
+            //if not equals then the object are from different realms hence the object is transparent
+            if(realm_object_map!=realm_object_target)
+                args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
+                
+        }
+    }
     return CallNonGenericMethod<IsWeakMap, WeakMap_delete_impl>(cx, args);
 }
 
@@ -406,9 +532,9 @@ WeakMap_set_impl(JSContext* cx, CallArgs args)
         return false;
     }
 
-    JSObject* targetObject = GetIdentityObject(&args[0].toObject());
-
-    RootedObject key(cx, targetObject);
+    RootedObject key(cx, &args[0].toObject());
+    //JSObject* targetObject = GetIdentityObject(&args[0].toObject());
+    //RootedObject key(cx, targetObject);
     Rooted<JSObject*> thisObj(cx, &args.thisv().toObject());
     Rooted<WeakMapObject*> map(cx, &thisObj->as<WeakMapObject>());
 
@@ -422,6 +548,48 @@ bool
 js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args[0].isObject())
+    {
+        //Checking if the map object is part of a realm.
+        //Getting the map object on which set function is being applied
+        RootedValue current_map(cx,args.thisv());
+
+        //A dummy object if the map is not part of realm
+        RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
+        RootedValue emptyVal(cx);
+        JS_SetReservedSlot(emptyObject,0,emptyVal);
+        
+        bool someVal = false;
+        
+        //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
+        if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
+        {
+            someVal = true;
+        }
+              
+        RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0)); 
+        RootedObject realm_object_map(cx,someVal ? &realm.toObject():emptyObject);
+        
+        if(IsTransparentProxy(&args[0].toObject()))
+        {
+            //Getting the realm object of the target if any
+            JSObject* obj_temp = &args[0].toObject();
+            const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
+            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+
+            //Alternative way not fully tested
+            //RootedObject obj_temp(cx,&args[0].toObject());
+            //RootedValue set_object_realm(cx,ObjectValue(*obj_temp->as<js::ProxyObject>().extra(2).toObjectOrNull()));
+            //RootedObject ojj(cx,&set_object_realm.toObject());
+
+            //If both the objects are equals it means set/map and the object have the same realm
+            //Hence to set/map the object is opaque and so it is directly applied to set/map
+            //if not equals then the object are from different realms hence the object is transparent
+            if(realm_object_map!=realm_object_target)
+                args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
+                
+        }
+    }
     return CallNonGenericMethod<IsWeakMap, WeakMap_set_impl>(cx, args);
 }
 
@@ -618,7 +786,7 @@ WeakMap_construct(JSContext* cx, unsigned argc, Value* vp)
 const Class WeakMapObject::class_ = {
     "WeakMap",
     JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS |
-    JSCLASS_HAS_CACHED_PROTO(JSProto_WeakMap),
+    JSCLASS_HAS_CACHED_PROTO(JSProto_WeakMap)|JSCLASS_HAS_RESERVED_SLOTS(1),
     nullptr, /* addProperty */
     nullptr, /* delProperty */
     nullptr, /* getProperty */

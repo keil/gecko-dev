@@ -1344,6 +1344,10 @@ js::CreateRealmWeakMap(JSContext* cx,unsigned argc,Value* vp)
     // Working Call for Constructing a setting WeakMaps on Realm
     CallArgs args = CallArgsFromVp(argc,vp);
 
+    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));    
+    RootedObject current_object(cx,&current_val.toObject());
+    RootedValue third_argument(cx,ObjectValue(*current_object));
+
     RootedFunction func_proxy(cx,JS_NewFunction(cx,WeakMap_construct,0,JSFUN_CONSTRUCTOR,"WeakMap"));
     RootedValue v(cx);
     RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
@@ -1353,7 +1357,8 @@ js::CreateRealmWeakMap(JSContext* cx,unsigned argc,Value* vp)
     if(v.isObject())
     {
         RootedObject obj4(cx,&v.toObject());
-        args.rval().setObject(*obj4);    
+        JS_SetReservedSlot(obj4,0,third_argument);
+        args.rval().setObject(*obj4);
     }
     else
     {
@@ -1481,8 +1486,14 @@ bool
 js::CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
 {
     /* Working Call for Constructing a new TProxy*/
-    argc += 1;
     CallArgs args = CallArgsFromVp(argc,vp);
+
+    //Constructing a new argument
+    ConstructArgs constructArgs(cx);
+    constructArgs.init(3);
+    constructArgs[0].set(args[0]);
+    constructArgs[1].set(args[1]);
+    
 
     //Getting the parent object
     //RootedValue current_val(cx,args.thisv());
@@ -1503,17 +1514,22 @@ js::CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
     
 
     if(third_argument.isObject())
-        args[2].set(third_argument);
+    {
+        constructArgs[2].set(third_argument);
+    }
+        
 
     RootedObject param_obj(cx,&args[0].toObject());
 
     RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
 
     RootedFunction func_proxy(cx,JS_NewFunction(cx,js::tProxy,3,JSFUN_CONSTRUCTOR,"proxy_func"));
+    //RootedObject obj_temp_0(cx,JS_NewObject(cx,NULL));
     RootedValue v(cx);
     RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
     RootedValue val_temp(cx,JS::ObjectValue(*obj_temp));
-    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+    //bool su = JS_CallFunctionName(cx, js::tProxy, "tProxy", 3, args, &v);
+    bool success_3 = JS::Construct(cx,val_temp,constructArgs,&v);
 
     if(v.isObject())
     {
@@ -1587,15 +1603,17 @@ js::CreateTransparentProxy(JSContext* cx, unsigned argc, Value* vp)
 bool
 js::equals(JSContext* cx, unsigned argc, Value* vp)
 {
-    
-    argc += 1;
     CallArgs args = CallArgsFromVp(argc,vp);
 
     //Getting the parent object
     //RootedValue current_val(cx,args.thisv());
     RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
     RootedObject current_object(cx,&current_val.toObject());
-    
+
+    ConstructArgs constructArgs(cx);
+    constructArgs.init(3);
+    constructArgs[0].set(args[0]);
+    constructArgs[1].set(args[1]);
 
     //The Default working way to get secret token
     //JS_GetProperty(cx,current_object,"secretToken",&third_argument);
@@ -1604,7 +1622,8 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
     RootedValue third_argument(cx,ObjectValue(*current_object));
 
     if(third_argument.isObject())
-        args[2].set(third_argument);
+        constructArgs[3].set(args[3]);
+
 
     //Creating a Dummy Plain Object to access underlying equals method
     //RootedObject temp_obj(cx,JS_NewObject(cx,nullptr));
@@ -1619,7 +1638,7 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
 
     RootedFunction realm_equal_func(cx,JS_NewFunction(cx,realm_equals,3,0,"object_equals_func"));
     RootedValue v(cx);
-    bool result = JS_CallFunction(cx, global_obj,realm_equal_func,args,&v);
+    bool result = JS_CallFunction(cx, global_obj,realm_equal_func,constructArgs,&v);
 
     if(v.isBoolean())
     {
