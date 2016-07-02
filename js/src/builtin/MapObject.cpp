@@ -647,11 +647,14 @@ bool
 MapObject::get(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -659,6 +662,8 @@ MapObject::get(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -687,6 +692,8 @@ MapObject::get(JSContext* cx, unsigned argc, Value* vp)
             if(realm_object_map!=realm_object_target)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
         }
+        }
+    }
     }
     return CallNonGenericMethod<MapObject::is, MapObject::get_impl>(cx, args);
 }
@@ -721,11 +728,14 @@ MapObject::has(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
     
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -733,6 +743,8 @@ MapObject::has(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -761,6 +773,8 @@ MapObject::has(JSContext* cx, unsigned argc, Value* vp)
             if(realm_object_map!=realm_object_target)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
         }
+        }
+    }
     }
     return CallNonGenericMethod<MapObject::is, MapObject::has_impl>(cx, args);
 }
@@ -792,12 +806,15 @@ bool
 MapObject::set(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    
+
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -805,6 +822,8 @@ MapObject::set(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -839,6 +858,8 @@ MapObject::set(JSContext* cx, unsigned argc, Value* vp)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
                 
         }
+        }
+    }
     }
     return CallNonGenericMethod<MapObject::is, MapObject::set_impl>(cx, args);
 }
@@ -888,11 +909,14 @@ bool
 MapObject::delete_(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -900,6 +924,8 @@ MapObject::delete_(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -928,6 +954,8 @@ MapObject::delete_(JSContext* cx, unsigned argc, Value* vp)
             if(realm_object_map!=realm_object_target)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
         }
+        }
+    }
     }
     return CallNonGenericMethod<MapObject::is, MapObject::delete_impl>(cx, args);
 }
@@ -1470,11 +1498,14 @@ bool
 SetObject::has(JSContext *cx, unsigned argc, Value *vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -1482,6 +1513,8 @@ SetObject::has(JSContext *cx, unsigned argc, Value *vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -1510,6 +1543,8 @@ SetObject::has(JSContext *cx, unsigned argc, Value *vp)
             if(realm_object_map!=realm_object_target)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
         }
+        }
+    }
     }
     return CallNonGenericMethod<SetObject::is, SetObject::has_impl>(cx, args);
 }
@@ -1534,11 +1569,14 @@ bool
 SetObject::add(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -1546,6 +1584,8 @@ SetObject::add(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -1574,6 +1614,8 @@ SetObject::add(JSContext* cx, unsigned argc, Value* vp)
             if(realm_object_map!=realm_object_target)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
         }
+        }
+    }
     }
     return CallNonGenericMethod<SetObject::is, SetObject::add_impl>(cx, args);
 }
@@ -1616,11 +1658,14 @@ bool
 SetObject::delete_(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -1628,6 +1673,8 @@ SetObject::delete_(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -1656,6 +1703,8 @@ SetObject::delete_(JSContext* cx, unsigned argc, Value* vp)
             if(realm_object_map!=realm_object_target)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
         }
+        }
+    }
     }
     return CallNonGenericMethod<SetObject::is, SetObject::delete_impl>(cx, args);
 }

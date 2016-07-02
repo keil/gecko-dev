@@ -247,11 +247,14 @@ bool
 js::WeakMap_has(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -260,6 +263,9 @@ js::WeakMap_has(JSContext* cx, unsigned argc, Value* vp)
         
         bool someVal = false;
         
+        if(current_map_obj->is<NativeObject>())
+        {
+
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
         {
@@ -288,6 +294,8 @@ js::WeakMap_has(JSContext* cx, unsigned argc, Value* vp)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
                 
         }
+        }
+    }
     }
     return CallNonGenericMethod<IsWeakMap, WeakMap_has_impl>(cx, args);
 }
@@ -339,11 +347,14 @@ bool
 js::WeakMap_get(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -351,6 +362,8 @@ js::WeakMap_get(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -380,6 +393,8 @@ js::WeakMap_get(JSContext* cx, unsigned argc, Value* vp)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
                 
         }
+        }
+    }
     }
     return CallNonGenericMethod<IsWeakMap, WeakMap_get_impl>(cx, args);
 }
@@ -411,11 +426,14 @@ bool
 js::WeakMap_delete(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -424,6 +442,9 @@ js::WeakMap_delete(JSContext* cx, unsigned argc, Value* vp)
         
         bool someVal = false;
         
+        if(current_map_obj->is<NativeObject>())
+        {
+
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
         {
@@ -452,6 +473,8 @@ js::WeakMap_delete(JSContext* cx, unsigned argc, Value* vp)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
                 
         }
+        }
+    }
     }
     return CallNonGenericMethod<IsWeakMap, WeakMap_delete_impl>(cx, args);
 }
@@ -548,11 +571,14 @@ bool
 js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    if(args.length()!=0)
+    {
     if(args[0].isObject())
     {
         //Checking if the map object is part of a realm.
         //Getting the map object on which set function is being applied
         RootedValue current_map(cx,args.thisv());
+        RootedObject current_map_obj(cx,&current_map.toObject());
 
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
@@ -560,6 +586,8 @@ js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        if(current_map_obj->is<NativeObject>())
+        {
         
         //Checking if realm object exists in the reserved slot of the map(To check If map is part of a realm)
         if(!JS_GetReservedSlot(&current_map.toObject(),0).isNullOrUndefined())
@@ -589,6 +617,8 @@ js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
                 args[0].setObject(*GetIdentityObjectWithTokens(&args[0].toObject(),realm_object_map));
                 
         }
+        }
+    }
     }
     return CallNonGenericMethod<IsWeakMap, WeakMap_set_impl>(cx, args);
 }
