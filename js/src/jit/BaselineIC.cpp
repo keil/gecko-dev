@@ -41,6 +41,8 @@
 #include "vm/StringObject-inl.h"
 #include "vm/UnboxedObject-inl.h"
 
+#include "js/Proxy.h"
+
 using mozilla::DebugOnly;
 
 namespace js {
@@ -1273,7 +1275,8 @@ DoCompareFallback(JSContext* cx, BaselineFrame* frame, ICCompare_Fallback* stub_
             return true;
         }
 
-        if (lhs.isObject() && rhs.isObject()) {
+        if (lhs.isObject() && rhs.isObject() && 
+            !IsTransparentProxy(&lhs.toObject()) && !IsTransparentProxy(&rhs.toObject())) {
             MOZ_ASSERT(!stub->hasStub(ICStub::Compare_Object));
             JitSpew(JitSpew_BaselineIC, "  Generating %s(Object, Object) stub", js_CodeName[op]);
             ICCompare_Object::Compiler compiler(cx, op);
