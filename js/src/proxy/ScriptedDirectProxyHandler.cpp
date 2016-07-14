@@ -1478,11 +1478,40 @@ js::realm_equals(JSContext* cx,unsigned argc,Value* vp)
     }
     else
     {
-        double lval = 0;
-        double rval = 0;
-        bool success_lval = JS::ToNumber(cx,args[0],&lval);
-        bool success_rval = JS::ToNumber(cx,args[1],&rval);
-        args.rval().setBoolean(lval==rval);
+        bool test;
+        js::LooselyEqual(cx, args[0], args[1], &test);
+        args.rval().setBoolean(test);
+    }
+    return true;
+}
+
+bool
+js::realm_identical(JSContext* cx,unsigned argc,Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    if(args.length()<2){
+        JS_ReportErrorNumber(cx,GetErrorMessage,nullptr,JSMSG_MORE_ARGS_NEEDED,"Realm.identical","1","s");
+        return false;
+    }
+
+    if(args.length()>2){
+        if(args[0].isObject()&&args[1].isObject()&&args[2].isObject())
+        {
+            return realm_capability_equals(cx,&args[0].toObject(),&args[1].toObject(),&args[2].toObject(),args.rval());
+        }
+    }
+
+    //Handling the primitive values
+    if(args[0].isObject()&&args[1].isObject())
+    {
+        args.rval().setBoolean(GetIdentityObject(&args[0].toObject()) == GetIdentityObject(&args[1].toObject()));    
+    }
+    else
+    {
+        bool test;
+        js::StrictlyEqual(cx,args[0],args[1],&test);
+        args.rval().setBoolean(test);
     }
     return true;
 }
@@ -1633,7 +1662,7 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
 
     //Creating a Dummy Plain Object to access underlying equals method
     //RootedObject temp_obj(cx,JS_NewObject(cx,nullptr));
-    RootedObject param_obj(cx,&args[0].toObject());
+    RootedObject param_obj(cx,args[0].isObject() ? &args[0].toObject():JS_NewObject(cx,nullptr));
 
     RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
 
@@ -1656,10 +1685,60 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
         args.rval().setUndefined();    
     }
     
+    return true;
 
-    
+}
 
+bool
+js::identical(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc,vp);
 
+    //Getting the parent object
+    //RootedValue current_val(cx,args.thisv());
+    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+    RootedObject current_object(cx,&current_val.toObject());
+
+    ConstructArgs constructArgs(cx);
+    constructArgs.init(3);
+    constructArgs[0].set(args[0]);
+    constructArgs[1].set(args[1]);
+
+    //The Default working way to get secret token
+    //JS_GetProperty(cx,current_object,"secretToken",&third_argument);
+
+    //The alternative way to get secret token
+    RootedValue third_argument(cx,ObjectValue(*current_object));
+
+    if(third_argument.isObject())
+    {
+        constructArgs[2].set(third_argument);
+    }
+
+    //Creating a Dummy Plain Object to access underlying equals method
+    //RootedObject temp_obj(cx,JS_NewObject(cx,nullptr));
+    RootedObject param_obj(cx,args[0].isObject() ? &args[0].toObject():JS_NewObject(cx,nullptr));
+
+    RootedObject global_obj (cx,JS_GetGlobalForObject(cx,param_obj));
+
+    //Getting the Constructor for Object to call .equals on it
+    /*const Class* clasp = &js::PlainObject::class_;
+    JSProtoKey protoKey = JSProto_Object;
+    RootedObject ctor(cx, clasp->spec.createConstructorHook()(cx, protoKey));*/
+
+    RootedFunction realm_equal_func(cx,JS_NewFunction(cx,realm_identical,3,0,"object_identical_func"));
+    RootedValue v(cx);
+    bool result = JS_CallFunction(cx, global_obj,realm_equal_func,constructArgs,&v);
+
+    if(v.isBoolean())
+    {
+        bool return_val = JS::ToBoolean(v);
+        args.rval().setBoolean(return_val);
+    }
+    else
+    {
+        args.rval().setUndefined();    
+    }
     return true;
 
 }
@@ -1725,6 +1804,9 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     temp_func2->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
     //if(!JS_DefineFunction(cx,realm_obj,"equals",equals,2,0))
     //    return nullptr;
+
+    RootedFunction temp_func7(cx,DefineFunctionWithReserved(cx,realm_obj,"identical",identical,2,0));
+    temp_func7->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
 
 
     args.rval().setObject(*realm_obj);

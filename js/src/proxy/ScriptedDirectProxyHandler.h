@@ -133,6 +133,12 @@ bool
 realm_equals(JSContext* cx,unsigned argc,Value* vp);
 
 bool
+realm_identical(JSContext* cx,unsigned argc,Value* vp);
+
+bool
+identical(JSContext* cx, unsigned argc, Value* vp);
+
+bool
 CreateRealmMap(JSContext* cx,unsigned argc,Value* vp);
 
 bool
