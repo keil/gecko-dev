@@ -1627,8 +1627,9 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
     RootedValue third_argument(cx,ObjectValue(*current_object));
 
     if(third_argument.isObject())
-        constructArgs[3].set(args[3]);
-
+    {
+        constructArgs[2].set(third_argument);
+    }
 
     //Creating a Dummy Plain Object to access underlying equals method
     //RootedObject temp_obj(cx,JS_NewObject(cx,nullptr));
