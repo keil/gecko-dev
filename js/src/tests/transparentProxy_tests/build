@@ -1,0 +1,17 @@
+#!/bin/bash         
+
+echo "Creating Sym Links"
+
+ln -s ../../build_DBG.OBJ/dist/bin/js js_debug
+
+ln -s ../../build_OPT.OBJ/dist/bin/js js
+
+ln -s ../../SunSpider/sunspider sunspider
+
+ln -s ../../octane/ octane
+
+ln -s ../../jit-test/jit_test.py jit-test
+
+ln -s ../jstests.py jstests
+
+echo "Symlinks creation done"
