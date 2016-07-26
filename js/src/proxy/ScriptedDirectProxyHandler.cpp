@@ -1404,6 +1404,10 @@ js::CreateRealmWeakSet(JSContext* cx,unsigned argc,Value* vp)
     // Working Call for Constructing a setting WeakMaps on Realm
     CallArgs args = CallArgsFromVp(argc,vp);
 
+    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));    
+    RootedObject current_object(cx,&current_val.toObject());
+    RootedValue third_argument(cx,ObjectValue(*current_object));
+
     RootedFunction func_proxy(cx,JS_NewFunction(cx,WeakSetObject::construct,0,JSFUN_CONSTRUCTOR,"WeakSet"));
     RootedValue v(cx);
     RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
@@ -1413,6 +1417,7 @@ js::CreateRealmWeakSet(JSContext* cx,unsigned argc,Value* vp)
     if(v.isObject())
     {
         RootedObject obj4(cx,&v.toObject());
+        JS_SetReservedSlot(obj4,1,third_argument);
         args.rval().setObject(*obj4);    
     }
     else

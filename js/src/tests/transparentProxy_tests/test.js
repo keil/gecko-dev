@@ -21,4 +21,8 @@ load("test.strictequality.js");
 load("test.strictinequality.js");
 load("test.transparentProxy.js");
 load("test.realm.js");
+load("test.realm.map.js");
+load("test.realm.weakmap.js");
+load("test.realm.set.js");
+//load("test.realm.weakset.js");
 

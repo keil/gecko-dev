@@ -580,12 +580,22 @@ js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
         RootedValue current_map(cx,args.thisv());
         RootedObject current_map_obj(cx,&current_map.toObject());
 
+        RootedValue current_map2(cx,args.calleev());
+        RootedObject current_map_obj2(cx,&current_map2.toObject());
+
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
         RootedValue emptyVal(cx);
         JS_SetReservedSlot(emptyObject,0,emptyVal);
         
         bool someVal = false;
+        const js::Class* className = GetObjectClass(current_map_obj);
+        const js::Class* className2 = GetObjectClass(current_map_obj2);
+
+        if(strcmp(className->name, "WeakSet")==0)
+        {
+            //someVal = true;
+        }
         if(current_map_obj->is<NativeObject>())
         {
         
@@ -597,6 +607,7 @@ js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
               
         RootedValue realm(cx,JS_GetReservedSlot(someVal ? &current_map.toObject():emptyObject,0)); 
         RootedObject realm_object_map(cx,someVal ? &realm.toObject():emptyObject);
+        const js::Class* className3 = GetObjectClass(realm_object_map);
         
         if(IsTransparentProxy(&args[0].toObject()))
         {

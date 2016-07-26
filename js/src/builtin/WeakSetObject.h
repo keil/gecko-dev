@@ -14,7 +14,7 @@ namespace js {
 class WeakSetObject : public NativeObject
 {
   public:
-    static const unsigned RESERVED_SLOTS = 1;
+    static const unsigned RESERVED_SLOTS = 2;
 
     static JSObject* initClass(JSContext* cx, JSObject* obj);
     static const Class class_;
