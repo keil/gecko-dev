@@ -280,7 +280,10 @@ js::WeakMap_has(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -379,7 +382,10 @@ js::WeakMap_get(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -459,7 +465,11 @@ js::WeakMap_delete(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -583,6 +593,12 @@ js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
         RootedValue current_map2(cx,args.calleev());
         RootedObject current_map_obj2(cx,&current_map2.toObject());
 
+        bool test_000 = false;
+        JS::Handle<JS::Value> current_map3 = args.get(1);
+        test_000 = current_map3.isBoolean();
+        //RootedObject current_map_obj3(cx,&current_map3.toObject());
+        //const js::Class* className3 = GetObjectClass(current_map_obj3);
+
         //A dummy object if the map is not part of realm
         RootedObject emptyObject(cx, JS_GetGlobalForObject(cx, &args.callee()));
         RootedValue emptyVal(cx);
@@ -614,7 +630,10 @@ js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());

@@ -760,7 +760,10 @@ MapObject::has(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
             
             //Alternative way not sure it it works
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -839,7 +842,10 @@ MapObject::set(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -941,7 +947,10 @@ MapObject::delete_(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
             
             //Alternative way not sure it it works
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -1601,7 +1610,10 @@ SetObject::add(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
             
             //Alternative way not sure it it works
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -1690,7 +1702,10 @@ SetObject::delete_(JSContext* cx, unsigned argc, Value* vp)
             //Getting the realm object of the target if any
             JSObject* obj_temp = &args[0].toObject();
             const JS::Value* set_object_realm = &obj_temp->as<js::ProxyObject>().extra(2);
-            RootedObject realm_object_target(cx,&set_object_realm->toObject());
+            bool target_has_realm = false;
+            if(set_object_realm->isObject())
+                target_has_realm = true;
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
             
             //Alternative way not sure it it works
             //RootedObject obj_temp(cx,&args[0].toObject());

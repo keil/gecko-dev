@@ -23,3 +23,13 @@ sunspider-run:
 
 octane-run:
 	(cd ../../octane && ../build_OPT.OBJ/dist/bin/js run.js)
+
+build-debug:
+	(cd ../../ && autoconf2.13 && mkdir build222_DBG.OBJ && cd build222_DBG.OBJ && \
+	(../configure --enable-debug --disable-optimize) && $(MAKE))
+
+build-optimized:
+	(cd ../../ && autoconf2.13 && mkdir build222_OPT.OBJ && cd build222_OPT.OBJ && \
+	(../configure --disable-debug --enable-optimize) && $(MAKE))
+
+

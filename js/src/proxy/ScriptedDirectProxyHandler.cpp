@@ -1418,6 +1418,7 @@ js::CreateRealmWeakSet(JSContext* cx,unsigned argc,Value* vp)
     {
         RootedObject obj4(cx,&v.toObject());
         JS_SetReservedSlot(obj4,1,third_argument);
+        const js::Class* className3 = GetObjectClass(obj4);
         args.rval().setObject(*obj4);    
     }
     else
