@@ -283,7 +283,8 @@ js::WeakMap_has(JSContext* cx, unsigned argc, Value* vp)
             bool target_has_realm = false;
             if(set_object_realm->isObject())
                 target_has_realm = true;
-            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
+            RootedObject dummyObject2(cx,JS_NewPlainObject(cx));
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():dummyObject2);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -385,7 +386,8 @@ js::WeakMap_get(JSContext* cx, unsigned argc, Value* vp)
             bool target_has_realm = false;
             if(set_object_realm->isObject())
                 target_has_realm = true;
-            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
+            RootedObject dummyObject2(cx,JS_NewPlainObject(cx));
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():dummyObject2);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -469,7 +471,8 @@ js::WeakMap_delete(JSContext* cx, unsigned argc, Value* vp)
             bool target_has_realm = false;
             if(set_object_realm->isObject())
                 target_has_realm = true;
-            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
+            RootedObject dummyObject2(cx,JS_NewPlainObject(cx));
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():dummyObject2);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
@@ -633,7 +636,8 @@ js::WeakMap_set(JSContext* cx, unsigned argc, Value* vp)
             bool target_has_realm = false;
             if(set_object_realm->isObject())
                 target_has_realm = true;
-            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():emptyObject);
+            RootedObject dummyObject2(cx,JS_NewPlainObject(cx));
+            RootedObject realm_object_target(cx,target_has_realm ? &set_object_realm->toObject():dummyObject2);
 
             //Alternative way not fully tested
             //RootedObject obj_temp(cx,&args[0].toObject());
