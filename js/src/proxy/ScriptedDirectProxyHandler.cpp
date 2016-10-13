@@ -1359,11 +1359,26 @@ js::CreateRealmWeakMap(JSContext* cx,unsigned argc,Value* vp)
         RootedObject obj4(cx,&v.toObject());
         JS_SetReservedSlot(obj4,0,third_argument);
         args.rval().setObject(*obj4);
+
+        //Setting the Prototype property of weakmap constructor function to the
+        //default Prototype of WeakMap and then setting the constructor function
+        //as a property of the realm
+        Rooted<GlobalObject*> global(cx, cx->global());
+        Value proto = global->getPrototype(JSProto_WeakMap);
+        if(!LinkConstructorAndPrototype(cx,func_proxy,&proto.toObject()))
+            return false;
+
+
+        JS_SetProperty(cx, current_object, "WeakMap", val_temp);
+
     }
     else
     {
         args.rval().setUndefined();    
     }
+
+
+
 
     return true;
 }
@@ -1804,8 +1819,10 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     //    return nullptr;
 
     //Defining the Weakmaps on realm object
+    //RootedPlainObject proto(cx, NewBuiltinClassInstance<PlainObject>(cx));
     RootedFunction temp_func5(cx,DefineFunctionWithReserved(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,JSFUN_CONSTRUCTOR));
     temp_func5->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+    //LinkConstructorAndPrototype(cx, temp_func5, proto);
     //if(!JS_DefineFunction(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,0))
     //    return nullptr;
 
