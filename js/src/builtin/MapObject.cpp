@@ -308,27 +308,6 @@ InitClass(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, JSPro
     return proto;
 }
 
-static JSObject*
-InitClass_realm(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, JSProtoKey key, Native construct,
-          const JSPropertySpec* properties, const JSFunctionSpec* methods,
-          const JSPropertySpec* staticProperties,Rooted<JSFunction*>& ctor)
-{
-    RootedPlainObject proto(cx, NewBuiltinClassInstance<PlainObject>(cx));
-    if (!proto)
-        return nullptr;
-
-    //Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, construct, ClassName(key, cx), 0));
-    if (!ctor ||
-        !JS_DefineProperties(cx, ctor, staticProperties) ||
-        !LinkConstructorAndPrototype(cx, ctor, proto) ||
-        !DefinePropertiesAndFunctions(cx, proto, properties, methods) ||
-        !GlobalObject::initBuiltinConstructor(cx, global, key, ctor, proto))
-    {
-        return nullptr;
-    }
-    return proto;
-}
-
 JSObject*
 MapObject::initClass(JSContext* cx, JSObject* obj)
 {
@@ -349,94 +328,6 @@ MapObject::initClass(JSContext* cx, JSObject* obj)
             return nullptr;
     }
     return proto;
-}
-
-//Sir's
-static JSObject*
-InitRealmClass(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, JSProtoKey key, Native construct,
-          const JSPropertySpec* properties, const JSFunctionSpec* methods,
-          const JSPropertySpec* staticProperties, HandleObject realm)
-{
-    RootedPlainObject proto(cx, NewBuiltinClassInstance<PlainObject>(cx));
-    if (!proto)
-        return nullptr;
-
-    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, construct, ClassName(key, cx), 0));
-    if (!ctor ||
-        !JS_DefineProperties(cx, ctor, staticProperties) ||
-        !LinkConstructorAndPrototype(cx, ctor, proto) ||
-        !DefinePropertiesAndFunctions(cx, proto, properties, methods))
-        //!GlobalObject::initBuiltinConstructor(cx, realm, key, ctor, proto))
-    {
-        return nullptr;
-    }
-    JS_DefineProperty(cx, realm, "List", ctor,JSPROP_RESOLVING);
-    //JS_DefineProperty(cx, realm, "Mapx", ctor,0);
-
-
-
-
-    return proto;
-}
-
-
-
-
-
-JSObject*
-MapObject::initRealmClass(JSContext* cx, JSObject* obj, HandleObject realm)
-{
-    Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
-    RootedObject proto(cx,
-        InitRealmClass(cx, global, &class_, JSProto_Map, construct, properties, methods,
-                  staticProperties, realm));
-    if (proto) {
-        // Define the "entries" method.
-        JSFunction* fun = JS_DefineFunction(cx, proto, "entries", entries, 0, 0);
-        if (!fun)
-            return nullptr;
-
-        // Define its alias.
-        RootedValue funval(cx, ObjectValue(*fun));
-        RootedId iteratorId(cx, SYMBOL_TO_JSID(cx->wellKnownSymbols().iterator));
-        if (!JS_DefinePropertyById(cx, proto, iteratorId, funval, 0))
-            return nullptr;
-    }
-    return proto;
-}
-
-
-
-
-
-bool
-MapObject::initClass_realm(JSContext* cx, unsigned argc, Value* vp)
-{
-    CallArgs args = CallArgsFromVp(argc,vp);
-    //RootedObject realm(cx,&args.get(0).toObject());
-    JSObject* obj = cx->global();
-    Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
-    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, construct, ClassName(JSProto_Map, cx), 0));
-    RootedObject proto(cx,
-        InitClass_realm(cx, global, &class_, JSProto_Map, construct, properties, methods,
-                  staticProperties,ctor));
-    if (proto) {
-        // Define the "entries" method.
-        JSFunction* fun = JS_DefineFunction(cx, proto, "entries", entries, 0, 0);
-        if (!fun)
-            return false;
-
-        // Define its alias.
-        RootedValue funval(cx, ObjectValue(*fun));
-        RootedId iteratorId(cx, SYMBOL_TO_JSID(cx->wellKnownSymbols().iterator));
-        if (!JS_DefinePropertyById(cx, proto, iteratorId, funval, 0))
-            return false;
-    }
-    //Converting ctor to object
-    RootedObject obj_temp(cx,JS_GetFunctionObject(ctor));
-
-    args.rval().setObject(*obj_temp);
-    return true;
 }
 
 template <class Range>
