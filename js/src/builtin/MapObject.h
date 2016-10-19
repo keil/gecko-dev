@@ -86,6 +86,7 @@ class MapObject : public NativeObject {
                   "key-and-value.");
 
     static JSObject* initClass(JSContext* cx, JSObject* obj);
+    static JSObject* initRealmClass(JSContext* cx, JSObject* obj, HandleObject realm);
     static const Class class_;
 
     static bool getKeysAndValuesInterleaved(JSContext* cx, HandleObject obj,

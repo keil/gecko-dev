@@ -1805,7 +1805,10 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     RootedFunction temp_func(cx,DefineFunctionWithReserved(cx,realm_obj,"Proxy",CreateTransparentProxy,3,JSFUN_CONSTRUCTOR));
     temp_func->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
 
+    //Sir's Code
+    JSObject* obj = MapObject::initRealmClass(cx,cx->global(),realm_obj);
 
+    /*
     //Defining the maps on realm object
     RootedFunction temp_func3(cx,DefineFunctionWithReserved(cx,realm_obj,"Map",CreateRealmMap,0,JSFUN_CONSTRUCTOR));
     temp_func3->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
@@ -1831,6 +1834,8 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     temp_func6->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
     //if(!JS_DefineFunction(cx,realm_obj,"WeakSet",CreateRealmWeakSet,0,0))
     //    return nullptr;
+
+    */
 
     RootedFunction temp_func2(cx,DefineFunctionWithReserved(cx,realm_obj,"equals",equals,2,0));
     temp_func2->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
