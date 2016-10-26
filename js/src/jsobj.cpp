@@ -805,11 +805,15 @@ js::NewObjectWithClassProtoCommon(ExclusiveContext* cxArg, const Class* clasp,
     if (protoKey == JSProto_Null)
         protoKey = JSProto_Object;
 
+    //Proto here is the prototype of the function that creates Map
+    //it is either going to be cached protoype or object.prototype
+    //otherwise its going to return null
     RootedObject proto(cxArg, protoArg);
     if (!GetBuiltinPrototype(cxArg, protoKey, &proto))
         return nullptr;
 
     Rooted<TaggedProto> taggedProto(cxArg, TaggedProto(proto));
+
     RootedObjectGroup group(cxArg, ObjectGroup::defaultNewGroup(cxArg, clasp, taggedProto));
     if (!group)
         return nullptr;

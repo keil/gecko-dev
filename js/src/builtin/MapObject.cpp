@@ -340,20 +340,24 @@ InitRealmClass(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, 
     if (!proto)
         return nullptr;
 
-    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, construct, ClassName(key, cx), 0));
+    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, construct, ClassName(key, cx), 0,gc::AllocKind::FUNCTION_EXTENDED));
+    ctor->setExtendedSlot(0,ObjectValue(*realm));
+
+    //JSFunction* fun = global->createConstructor(cx, construct, ClassName(key, cx), 0);
+    //NewFunctionWithReserved(cx, global->createConstructor, 0, 0,"anything");
+    //RootedFunction ctor(cx,DefineFunctionWithReserved(cx,realm,"ctor",CreateTransparentProxy,3,JSFUN_CONSTRUCTOR));
+    //temp_func->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
+
     if (!ctor ||
         !JS_DefineProperties(cx, ctor, staticProperties) ||
         !LinkConstructorAndPrototype(cx, ctor, proto) ||
-        !DefinePropertiesAndFunctions(cx, proto, properties, methods))
-        //!GlobalObject::initBuiltinConstructor(cx, realm, key, ctor, proto))
+        !DefinePropertiesAndFunctions(cx, proto, properties, methods) ||
+        !GlobalObject::initBuiltinConstructor(cx, global, key, ctor, proto))
     {
         return nullptr;
     }
-    JS_DefineProperty(cx, realm, "List", ctor,JSPROP_RESOLVING);
+    JS_DefineProperty(cx, realm, "Map", ctor,JSPROP_RESOLVING);
     //JS_DefineProperty(cx, realm, "Mapx", ctor,0);
-
-
-
 
     return proto;
 }
@@ -511,6 +515,7 @@ MapObject::set(JSContext* cx, HandleObject obj, HandleValue k, HandleValue v)
 MapObject*
 MapObject::create(JSContext* cx)
 {
+    //int i = 1/0;
     Rooted<MapObject*> obj(cx, NewBuiltinClassInstance<MapObject>(cx));
     if (!obj)
         return nullptr;
@@ -521,6 +526,24 @@ MapObject::create(JSContext* cx)
         ReportOutOfMemory(cx);
         return nullptr;
     }
+
+    //Getting the global Object
+    Rooted<GlobalObject*> global(cx, cx->global());
+
+    //Getting Prototype of the fuction/Constructor that creates the Map
+    Value proto = global->getPrototype(JSProto_Map);
+
+    //Setting Prototype of the fuction/Constructor that creates the Map
+    //global->setPrototype(JSProto_Map,obj(cx, JS_NewPlainObject(cx)));
+    
+    //RootedObject protop(cx);
+    //GetPrototype(cx,obj,&protop);
+    //RootedValue vp(cx,ObjectValue(*protop));
+
+    //JS_GetProperty(cx,obj,"prototype",&vp);
+    //if(vp.isNullOrUndefined())
+    //    JS_SetProperty(cx,obj,"wwww",vp);
+
 
     obj->setPrivate(map);
     return obj;
@@ -537,6 +560,21 @@ bool
 MapObject::construct(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
+    //We want the realm here, check if  args.thisv() is ctor, and get the realm from
+    //the reserved slot of the ctor in addition we can also get the prototype of
+    //the ctor.
+    //RootedValue ctor_val(cx,args.thisv());
+    //JSFunction* ctor = JS_ValueToFunction(cx,ctor_val);
+    //RootedValue realm(cx,ctor->getExtendedSlot(0));
+
+    //The realm Object
+    RootedValue realm_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+    RootedObject realm_obj(cx,&realm_val.toObject());
+
+    //The ctor
+    RootedFunction ctor(cx,&args.callee().as<JSFunction>());
+    RootedObject proto_ctor(cx);
+    GetPrototype(cx,ctor,&proto_ctor);
 
     if (!ThrowIfNotConstructing(cx, args, "Map"))
         return false;
