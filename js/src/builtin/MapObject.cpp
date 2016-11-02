@@ -340,24 +340,18 @@ InitRealmClass(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, 
     if (!proto)
         return nullptr;
 
-    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, construct, ClassName(key, cx), 0,gc::AllocKind::FUNCTION_EXTENDED));
+    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, MapObject::realmConstruct, ClassName(key, cx), 0,gc::AllocKind::FUNCTION_EXTENDED));
     ctor->setExtendedSlot(0,ObjectValue(*realm));
-
-    //JSFunction* fun = global->createConstructor(cx, construct, ClassName(key, cx), 0);
-    //NewFunctionWithReserved(cx, global->createConstructor, 0, 0,"anything");
-    //RootedFunction ctor(cx,DefineFunctionWithReserved(cx,realm,"ctor",CreateTransparentProxy,3,JSFUN_CONSTRUCTOR));
-    //temp_func->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
 
     if (!ctor ||
         !JS_DefineProperties(cx, ctor, staticProperties) ||
         !LinkConstructorAndPrototype(cx, ctor, proto) ||
-        !DefinePropertiesAndFunctions(cx, proto, properties, methods) ||
-        !GlobalObject::initBuiltinConstructor(cx, global, key, ctor, proto))
+        !DefinePropertiesAndFunctions(cx, proto, properties, methods))/* ||
+        !GlobalObject::initBuiltinConstructor(cx, global, key, ctor, proto))*/
     {
         return nullptr;
     }
     JS_DefineProperty(cx, realm, "Map", ctor,JSPROP_RESOLVING);
-    //JS_DefineProperty(cx, realm, "Mapx", ctor,0);
 
     return proto;
 }
@@ -515,7 +509,6 @@ MapObject::set(JSContext* cx, HandleObject obj, HandleValue k, HandleValue v)
 MapObject*
 MapObject::create(JSContext* cx)
 {
-    //int i = 1/0;
     Rooted<MapObject*> obj(cx, NewBuiltinClassInstance<MapObject>(cx));
     if (!obj)
         return nullptr;
@@ -526,24 +519,6 @@ MapObject::create(JSContext* cx)
         ReportOutOfMemory(cx);
         return nullptr;
     }
-
-    //Getting the global Object
-    Rooted<GlobalObject*> global(cx, cx->global());
-
-    //Getting Prototype of the fuction/Constructor that creates the Map
-    Value proto = global->getPrototype(JSProto_Map);
-
-    //Setting Prototype of the fuction/Constructor that creates the Map
-    //global->setPrototype(JSProto_Map,obj(cx, JS_NewPlainObject(cx)));
-    
-    //RootedObject protop(cx);
-    //GetPrototype(cx,obj,&protop);
-    //RootedValue vp(cx,ObjectValue(*protop));
-
-    //JS_GetProperty(cx,obj,"prototype",&vp);
-    //if(vp.isNullOrUndefined())
-    //    JS_SetProperty(cx,obj,"wwww",vp);
-
 
     obj->setPrivate(map);
     return obj;
@@ -560,12 +535,95 @@ bool
 MapObject::construct(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
-    //We want the realm here, check if  args.thisv() is ctor, and get the realm from
-    //the reserved slot of the ctor in addition we can also get the prototype of
-    //the ctor.
-    //RootedValue ctor_val(cx,args.thisv());
-    //JSFunction* ctor = JS_ValueToFunction(cx,ctor_val);
-    //RootedValue realm(cx,ctor->getExtendedSlot(0));
+
+    if (!ThrowIfNotConstructing(cx, args, "Map"))
+        return false;
+
+    Rooted<MapObject*> obj(cx, MapObject::create(cx));
+    if (!obj)
+        return false;
+
+    if (!args.get(0).isNullOrUndefined()) {
+        RootedValue adderVal(cx);
+        if (!GetProperty(cx, obj, obj, cx->names().set, &adderVal))
+            return false;
+
+        if (!IsCallable(adderVal))
+            return ReportIsNotFunction(cx, adderVal);
+
+        bool isOriginalAdder = IsNativeFunction(adderVal, MapObject::set);
+        RootedValue mapVal(cx, ObjectValue(*obj));
+        FastInvokeGuard fig(cx, adderVal);
+        InvokeArgs& args2 = fig.args();
+
+        ForOfIterator iter(cx);
+        if (!iter.init(args[0]))
+            return false;
+        RootedValue pairVal(cx);
+        RootedObject pairObj(cx);
+        Rooted<HashableValue> hkey(cx);
+        ValueMap* map = obj->getData();
+        while (true) {
+            bool done;
+            if (!iter.next(&pairVal, &done))
+                return false;
+            if (done)
+                break;
+            if (!pairVal.isObject()) {
+                JS_ReportErrorNumber(cx, GetErrorMessage, nullptr,
+                                     JSMSG_INVALID_MAP_ITERABLE, "Map");
+                return false;
+            }
+
+            pairObj = &pairVal.toObject();
+            if (!pairObj)
+                return false;
+
+            RootedValue key(cx);
+            if (!GetElement(cx, pairObj, pairObj, 0, &key))
+                return false;
+
+            RootedValue val(cx);
+            if (!GetElement(cx, pairObj, pairObj, 1, &val))
+                return false;
+
+            if (isOriginalAdder) {
+                if (!hkey.setValue(cx, key))
+                    return false;
+
+                RelocatableValue rval(val);
+                if (!map->put(hkey, rval)) {
+                    ReportOutOfMemory(cx);
+                    return false;
+                }
+                WriteBarrierPost(cx->runtime(), map, key);
+            } else {
+                if (!args2.init(2))
+                    return false;
+
+                args2.setCallee(adderVal);
+                args2.setThis(mapVal);
+                args2[0].set(key);
+                args2[1].set(val);
+
+                if (!fig.invoke(cx))
+                    return false;
+            }
+        }
+    }
+
+    args.rval().setObject(*obj);
+    return true;
+}
+
+bool
+MapObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
+{
+    /*
+    *   The Duplicate construct method only called by realm Map
+    */
+
+    CallArgs args = CallArgsFromVp(argc, vp);
 
     //The realm Object
     RootedValue realm_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
@@ -652,6 +710,10 @@ MapObject::construct(JSContext* cx, unsigned argc, Value* vp)
         }
     }
 
+    //Set realm as reserverd slot on the Map
+    JS_SetReservedSlot(obj,0,realm_val);
+    //Set prototype in the same way Object.setPrototypeOf on the Map Object
+    js::SetPrototype(cx,obj,proto_ctor);
     args.rval().setObject(*obj);
     return true;
 }

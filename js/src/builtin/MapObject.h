@@ -22,6 +22,7 @@ namespace js {
  *
  * All values except ropes are hashable as-is.
  */
+
 class HashableValue : public JS::Traceable
 {
     PreBarrieredValue value;
@@ -110,6 +111,7 @@ class MapObject : public NativeObject {
     static bool iterator(JSContext *cx, IteratorKind kind, HandleObject obj, MutableHandleValue iter);
 
     static bool construct(JSContext* cx, unsigned argc, Value* vp);
+    static bool realmConstruct(JSContext* cx, unsigned argc, Value* vp);
 
   private:
     static const JSPropertySpec properties[];
