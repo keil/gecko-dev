@@ -351,6 +351,7 @@ InitRealmClass(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, 
     {
         return nullptr;
     }
+    
     JS_DefineProperty(cx, realm, "Map", ctor,JSPROP_RESOLVING);
 
     return proto;
@@ -617,6 +618,16 @@ MapObject::construct(JSContext* cx, unsigned argc, Value* vp)
 }
 
 bool
+js::GetPrototypeFromConstructor(JSContext* cx, HandleObject newTarget, MutableHandleObject proto)
+{
+    RootedValue protov(cx);
+    if (!GetProperty(cx, newTarget, newTarget, cx->names().prototype, &protov))
+        return false;
+    proto.set(protov.isObject() ? &protov.toObject() : nullptr);
+    return true;
+}
+
+bool
 MapObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
 {
     /*
@@ -632,7 +643,9 @@ MapObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
     //The ctor
     RootedFunction ctor(cx,&args.callee().as<JSFunction>());
     RootedObject proto_ctor(cx);
-    GetPrototype(cx,ctor,&proto_ctor);
+    //GetPrototype(cx,ctor,&proto_ctor);
+    js::GetPrototypeFromConstructor(cx, ctor, &proto_ctor);
+
 
     if (!ThrowIfNotConstructing(cx, args, "Map"))
         return false;
