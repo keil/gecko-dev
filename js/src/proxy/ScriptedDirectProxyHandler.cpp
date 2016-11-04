@@ -1805,10 +1805,6 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     RootedFunction temp_func(cx,DefineFunctionWithReserved(cx,realm_obj,"Proxy",CreateTransparentProxy,3,JSFUN_CONSTRUCTOR));
     temp_func->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
 
-    //Sir's Code
-    //JSObject* global = JS_GetGlobalForObject(cx, &args.callee());
-    //JSObject* obj = MapObject::initRealmClass(cx,global,realm_obj);
-
     JSObject* obj = MapObject::initRealmClass(cx,cx->global(),realm_obj);
 
     /*
