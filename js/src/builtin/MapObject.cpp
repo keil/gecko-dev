@@ -346,8 +346,7 @@ InitRealmClass(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, 
     if (!ctor ||
         !JS_DefineProperties(cx, ctor, staticProperties) ||
         !LinkConstructorAndPrototype(cx, ctor, proto) ||
-        !DefinePropertiesAndFunctions(cx, proto, properties, methods))/* ||
-        !GlobalObject::initBuiltinConstructor(cx, global, key, ctor, proto))*/
+        !DefinePropertiesAndFunctions(cx, proto, properties, methods))
     {
         return nullptr;
     }
@@ -618,16 +617,6 @@ MapObject::construct(JSContext* cx, unsigned argc, Value* vp)
 }
 
 bool
-js::GetPrototypeFromConstructor(JSContext* cx, HandleObject newTarget, MutableHandleObject proto)
-{
-    RootedValue protov(cx);
-    if (!GetProperty(cx, newTarget, newTarget, cx->names().prototype, &protov))
-        return false;
-    proto.set(protov.isObject() ? &protov.toObject() : nullptr);
-    return true;
-}
-
-bool
 MapObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
 {
     /*
@@ -642,10 +631,10 @@ MapObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
 
     //The ctor
     RootedFunction ctor(cx,&args.callee().as<JSFunction>());
-    RootedObject proto_ctor(cx);
-    //GetPrototype(cx,ctor,&proto_ctor);
-    js::GetPrototypeFromConstructor(cx, ctor, &proto_ctor);
-
+    RootedValue proto(cx);
+    GetProperty(cx, ctor, ctor, cx->names().prototype,&proto);
+    RootedObject proto_obj(cx);
+    proto_obj = &proto.toObject();
 
     if (!ThrowIfNotConstructing(cx, args, "Map"))
         return false;
@@ -726,7 +715,7 @@ MapObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
     //Set realm as reserverd slot on the Map
     JS_SetReservedSlot(obj,0,realm_val);
     //Set prototype in the same way Object.setPrototypeOf on the Map Object
-    js::SetPrototype(cx,obj,proto_ctor);
+    SetPrototype(cx,obj,proto_obj);
     args.rval().setObject(*obj);
     return true;
 }

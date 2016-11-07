@@ -236,9 +236,6 @@ InitMapClass(JSContext* cx, HandleObject obj);
 extern JSObject*
 InitSetClass(JSContext* cx, HandleObject obj);
 
-bool
-GetPrototypeFromConstructor(JSContext* cx, HandleObject newTarget, MutableHandleObject proto);
-
 } /* namespace js */
 
 #endif /* builtin_MapObject_h */
