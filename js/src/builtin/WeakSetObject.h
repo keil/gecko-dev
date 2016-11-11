@@ -17,8 +17,12 @@ class WeakSetObject : public NativeObject
     static const unsigned RESERVED_SLOTS = 2;
 
     static JSObject* initClass(JSContext* cx, JSObject* obj);
+    static JSObject* initRealmClass(JSContext* cx, JSObject* obj,HandleObject realm);
+
     static const Class class_;
     static bool construct(JSContext* cx, unsigned argc, Value* vp);
+    static bool realmConstruct(JSContext* cx, unsigned argc, Value* vp);
+
 
   private:
     static const JSPropertySpec properties[];

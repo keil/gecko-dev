@@ -179,6 +179,8 @@ class SetObject : public NativeObject {
   public:
     enum IteratorKind { Values, Entries };
     static JSObject* initClass(JSContext* cx, JSObject* obj);
+    static JSObject* initRealmClass(JSContext* cx, JSObject* obj,HandleObject realm);
+
     static const Class class_;
 
     static bool keys(JSContext *cx, HandleObject obj, JS::AutoValueVector *keys);
@@ -196,6 +198,8 @@ class SetObject : public NativeObject {
     static bool delete_(JSContext *cx, HandleObject obj, HandleValue key, bool *rval);
 
     static bool construct(JSContext* cx, unsigned argc, Value* vp);
+    static bool realmConstruct(JSContext* cx, unsigned argc, Value* vp);
+
 
   private:
     static const JSPropertySpec properties[];

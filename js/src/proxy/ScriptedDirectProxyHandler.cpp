@@ -1784,62 +1784,24 @@ js::CreateRealm(JSContext* cx, unsigned argc, Value* vp)
     //Default working way to create a realm object
     RootedObject realm_obj(cx,JS_NewObject(cx,nullptr));
 
-    //RootedString secret_token(cx, JS_NewStringCopyZ(cx, "Secret Token")); 
-    //RootedValue val(cx,JS::StringValue(secret_token));
     RootedObject obj_token(cx,JS_NewObject(cx,nullptr));
     RootedValue val(cx,JS::ObjectValue(*obj_token));
-
-    //This line works see below line for details on why it is commented out
-    //if (!JS_SetProperty(cx, realm_obj, "secretToken", val))
-    //    return false;
-
-    //Defining Property in another way so that the property is readonly
-    //if(!JS_DefineProperty(cx, realm_obj, "secretToken",val,JSPROP_READONLY))
-    //    return false;
-
-    //Defining a Proxy Function on realm
-    //if(!JS_DefineFunction(cx,realm_obj,"Proxy",CreateTransparentProxy,3,0))
-    //    return nullptr;
 
     //Getting the Proxy function and setting the realm object in its reserved slot
     RootedFunction temp_func(cx,DefineFunctionWithReserved(cx,realm_obj,"Proxy",CreateTransparentProxy,3,JSFUN_CONSTRUCTOR));
     temp_func->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
 
-    JSObject* obj = MapObject::initRealmClass(cx,cx->global(),realm_obj);
+    JSObject* map_obj = MapObject::initRealmClass(cx,cx->global(),realm_obj);
 
-    /*
-    //Defining the maps on realm object
-    RootedFunction temp_func3(cx,DefineFunctionWithReserved(cx,realm_obj,"Map",CreateRealmMap,0,JSFUN_CONSTRUCTOR));
-    temp_func3->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
-    //if(!JS_DefineFunction(cx,realm_obj,"Map",CreateRealmMap,0,0))
-    //    return nullptr;
+    JSObject* set_obj = SetObject::initRealmClass(cx,cx->global(),realm_obj);
 
-    //Defining the maps on realm object
-    RootedFunction temp_func4(cx,DefineFunctionWithReserved(cx,realm_obj,"Set",CreateRealmSet,0,JSFUN_CONSTRUCTOR));
-    temp_func4->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
-    //if(!JS_DefineFunction(cx,realm_obj,"Set",CreateRealmSet,0,0))
-    //    return nullptr;
+    JSObject* weakset_obj = WeakSetObject::initRealmClass(cx,cx->global(),realm_obj);
 
-    //Defining the Weakmaps on realm object
-    //RootedPlainObject proto(cx, NewBuiltinClassInstance<PlainObject>(cx));
-    RootedFunction temp_func5(cx,DefineFunctionWithReserved(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,JSFUN_CONSTRUCTOR));
-    temp_func5->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
-    //LinkConstructorAndPrototype(cx, temp_func5, proto);
-    //if(!JS_DefineFunction(cx,realm_obj,"WeakMap",CreateRealmWeakMap,0,0))
-    //    return nullptr;
+    JSObject* weakmap_obj = js::InitRealmWeakMapClass(cx,cx->global(),true,realm_obj);
 
-    //Defining the WeakSet on realm object
-    RootedFunction temp_func6(cx,DefineFunctionWithReserved(cx,realm_obj,"WeakSet",CreateRealmWeakSet,0,JSFUN_CONSTRUCTOR));
-    temp_func6->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
-    //if(!JS_DefineFunction(cx,realm_obj,"WeakSet",CreateRealmWeakSet,0,0))
-    //    return nullptr;
-
-    */
 
     RootedFunction temp_func2(cx,DefineFunctionWithReserved(cx,realm_obj,"equals",equals,2,0));
     temp_func2->initExtendedSlot(0,JS::ObjectValue(*realm_obj));
-    //if(!JS_DefineFunction(cx,realm_obj,"equals",equals,2,0))
-    //    return nullptr;
 
     RootedFunction temp_func7(cx,DefineFunctionWithReserved(cx,realm_obj,"identical",identical,2,0));
     temp_func7->initExtendedSlot(0,JS::ObjectValue(*realm_obj));

@@ -397,6 +397,9 @@ WeakMap_clear(JSContext* cx, unsigned argc, Value* vp);
 extern JSObject*
 InitWeakMapClass(JSContext* cx, HandleObject obj);
 
+extern JSObject*
+InitRealmWeakMapClass(JSContext* cx, HandleObject obj, bool defineMembers,HandleObject realm);
+
 } /* namespace js */
 
 #endif /* jsweakmap_h */

@@ -847,6 +847,123 @@ WeakMap_construct(JSContext* cx, unsigned argc, Value* vp)
     return true;
 }
 
+static bool
+WeakMap_Realmconstruct(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    //The realm Object
+    RootedValue realm_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+    RootedObject realm_obj(cx,&realm_val.toObject());
+
+    //The ctor
+    RootedFunction ctor(cx,&args.callee().as<JSFunction>());
+    RootedValue proto(cx);
+    GetProperty(cx, ctor, ctor, cx->names().prototype,&proto);
+    RootedObject proto_obj(cx);
+    proto_obj = &proto.toObject();
+
+    // ES6 draft rev 31 (15 Jan 2015) 23.3.1.1 step 1.
+    if (!ThrowIfNotConstructing(cx, args, "WeakMap"))
+        return false;
+
+    RootedObject obj(cx, NewBuiltinClassInstance(cx, &WeakMapObject::class_));
+    if (!obj)
+        return false;
+
+    // Steps 5-6, 11.
+    if (!args.get(0).isNullOrUndefined()) {
+        // Steps 7a-b.
+        RootedValue adderVal(cx);
+        if (!GetProperty(cx, obj, obj, cx->names().set, &adderVal))
+            return false;
+
+        // Step 7c.
+        if (!IsCallable(adderVal))
+            return ReportIsNotFunction(cx, adderVal);
+
+        bool isOriginalAdder = IsNativeFunction(adderVal, WeakMap_set);
+        RootedValue mapVal(cx, ObjectValue(*obj));
+        FastInvokeGuard fig(cx, adderVal);
+        InvokeArgs& args2 = fig.args();
+
+        // Steps 7d-e.
+        JS::ForOfIterator iter(cx);
+        if (!iter.init(args[0]))
+            return false;
+
+        RootedValue pairVal(cx);
+        RootedObject pairObject(cx);
+        RootedValue keyVal(cx);
+        RootedObject keyObject(cx);
+        RootedValue val(cx);
+        while (true) {
+            // Steps 12a-e.
+            bool done;
+            if (!iter.next(&pairVal, &done))
+                return false;
+            if (done)
+                break;
+
+            // Step 12f.
+            if (!pairVal.isObject()) {
+                JS_ReportErrorNumber(cx, GetErrorMessage, nullptr,
+                                     JSMSG_INVALID_MAP_ITERABLE, "WeakMap");
+                return false;
+            }
+
+            pairObject = &pairVal.toObject();
+            if (!pairObject)
+                return false;
+
+            // Steps 12g-h.
+            if (!GetElement(cx, pairObject, pairObject, 0, &keyVal))
+                return false;
+
+            // Steps 12i-j.
+            if (!GetElement(cx, pairObject, pairObject, 1, &val))
+                return false;
+
+            // Steps 12k-l.
+            if (isOriginalAdder) {
+                if (keyVal.isPrimitive()) {
+                    UniquePtr<char[], JS::FreePolicy> bytes =
+                        DecompileValueGenerator(cx, JSDVG_SEARCH_STACK, keyVal, nullptr);
+                    if (!bytes)
+                        return false;
+                    JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_NONNULL_OBJECT, bytes.get());
+                    return false;
+                }
+
+                keyObject = &keyVal.toObject();
+                if (!SetWeakMapEntry(cx, obj, keyObject, val))
+                    return false;
+            } else {
+                if (!args2.init(2))
+                    return false;
+
+                args2.setCallee(adderVal);
+                args2.setThis(mapVal);
+                args2[0].set(keyVal);
+                args2[1].set(val);
+
+                if (!fig.invoke(cx))
+                    return false;
+            }
+        }
+    }
+
+    //Set realm as reserverd slot on the Map
+    JS_SetReservedSlot(obj,0,realm_val);
+    //Set prototype in the same way Object.setPrototypeOf on the Map Object
+    SetPrototype(cx,obj,proto_obj);
+
+    args.rval().setObject(*obj);
+    return true;
+}
+
+
+
 const Class WeakMapObject::class_ = {
     "WeakMap",
     JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS |
@@ -901,6 +1018,38 @@ InitWeakMapClass(JSContext* cx, HandleObject obj, bool defineMembers)
 
     if (!GlobalObject::initBuiltinConstructor(cx, global, JSProto_WeakMap, ctor, proto))
         return nullptr;
+    return proto;
+}
+
+JSObject*
+js::InitRealmWeakMapClass(JSContext* cx, HandleObject obj, bool defineMembers,HandleObject realm)
+{
+    MOZ_ASSERT(obj->isNative());
+
+    Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
+
+    RootedPlainObject proto(cx, NewBuiltinClassInstance<PlainObject>(cx));
+    if (!proto)
+        return nullptr;
+
+    RootedFunction ctor(cx, global->createConstructor(cx, WeakMap_Realmconstruct,
+                                                      cx->names().WeakMap, 0,gc::AllocKind::FUNCTION_EXTENDED));
+    ctor->setExtendedSlot(0,ObjectValue(*realm));
+
+
+    if (!ctor)
+        return nullptr;
+
+    if (!LinkConstructorAndPrototype(cx, ctor, proto))
+        return nullptr;
+
+    if (defineMembers) {
+        if (!DefinePropertiesAndFunctions(cx, proto, nullptr, weak_map_methods))
+            return nullptr;
+    }
+
+    JS_DefineProperty(cx, realm, "WeakMap", ctor,JSPROP_RESOLVING);
+
     return proto;
 }
 

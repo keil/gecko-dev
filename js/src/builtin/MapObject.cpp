@@ -378,8 +378,31 @@ MapObject::initRealmClass(JSContext* cx, JSObject* obj, HandleObject realm)
     return proto;
 }
 
+//init for Set
+static JSObject*
+InitRealmClass_Set(JSContext* cx, Handle<GlobalObject*> global, const Class* clasp, JSProtoKey key, Native construct,
+          const JSPropertySpec* properties, const JSFunctionSpec* methods,
+          const JSPropertySpec* staticProperties, HandleObject realm)
+{
+    RootedPlainObject proto(cx, NewBuiltinClassInstance<PlainObject>(cx));
+    if (!proto)
+        return nullptr;
 
+    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, SetObject::realmConstruct, ClassName(key, cx), 0,gc::AllocKind::FUNCTION_EXTENDED));
+    ctor->setExtendedSlot(0,ObjectValue(*realm));
 
+    if (!ctor ||
+        !JS_DefineProperties(cx, ctor, staticProperties) ||
+        !LinkConstructorAndPrototype(cx, ctor, proto) ||
+        !DefinePropertiesAndFunctions(cx, proto, properties, methods))
+    {
+        return nullptr;
+    }
+    
+    JS_DefineProperty(cx, realm, "Set", ctor,JSPROP_RESOLVING);
+
+    return proto;
+}
 
 
 
@@ -1448,6 +1471,31 @@ SetObject::initClass(JSContext* cx, JSObject* obj)
     return proto;
 }
 
+JSObject*
+SetObject::initRealmClass(JSContext* cx, JSObject* obj,HandleObject realm)
+{
+    Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
+    RootedObject proto(cx,
+        InitRealmClass_Set(cx, global, &class_, JSProto_Set, construct, properties, methods,
+                  staticProperties,realm));
+    if (proto) {
+        // Define the "values" method.
+        JSFunction* fun = JS_DefineFunction(cx, proto, "values", values, 0, 0);
+        if (!fun)
+            return nullptr;
+
+        // Define its aliases.
+        RootedValue funval(cx, ObjectValue(*fun));
+        if (!JS_DefineProperty(cx, proto, "keys", funval, 0))
+            return nullptr;
+
+        RootedId iteratorId(cx, SYMBOL_TO_JSID(cx->wellKnownSymbols().iterator));
+        if (!JS_DefinePropertyById(cx, proto, iteratorId, funval, 0))
+            return nullptr;
+    }
+    return proto;
+}
+
 
 bool
 SetObject::keys(JSContext* cx, HandleObject obj, JS::AutoValueVector* keys)
@@ -1578,6 +1626,86 @@ SetObject::construct(JSContext* cx, unsigned argc, Value* vp)
         }
     }
 
+    args.rval().setObject(*obj);
+    return true;
+}
+
+
+bool
+SetObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
+{
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    //The realm Object
+    RootedValue realm_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+    RootedObject realm_obj(cx,&realm_val.toObject());
+
+    //The ctor
+    RootedFunction ctor(cx,&args.callee().as<JSFunction>());
+    RootedValue proto(cx);
+    GetProperty(cx, ctor, ctor, cx->names().prototype,&proto);
+    RootedObject proto_obj(cx);
+    proto_obj = &proto.toObject();
+
+    if (!ThrowIfNotConstructing(cx, args, "Set"))
+        return false;
+
+    Rooted<SetObject*> obj(cx, SetObject::create(cx));
+    if (!obj)
+        return false;
+
+    if (!args.get(0).isNullOrUndefined()) {
+        RootedValue adderVal(cx);
+        if (!GetProperty(cx, obj, obj, cx->names().add, &adderVal))
+            return false;
+
+        if (!IsCallable(adderVal))
+            return ReportIsNotFunction(cx, adderVal);
+
+        bool isOriginalAdder = IsNativeFunction(adderVal, SetObject::add);
+        RootedValue setVal(cx, ObjectValue(*obj));
+        FastInvokeGuard fig(cx, adderVal);
+        InvokeArgs& args2 = fig.args();
+
+        RootedValue keyVal(cx);
+        ForOfIterator iter(cx);
+        if (!iter.init(args[0]))
+            return false;
+        Rooted<HashableValue> key(cx);
+        ValueSet* set = obj->getData();
+        while (true) {
+            bool done;
+            if (!iter.next(&keyVal, &done))
+                return false;
+            if (done)
+                break;
+
+            if (isOriginalAdder) {
+                if (!key.setValue(cx, keyVal))
+                    return false;
+                if (!set->put(key)) {
+                    ReportOutOfMemory(cx);
+                    return false;
+                }
+                WriteBarrierPost(cx->runtime(), set, keyVal);
+            } else {
+                if (!args2.init(1))
+                    return false;
+
+                args2.setCallee(adderVal);
+                args2.setThis(setVal);
+                args2[0].set(keyVal);
+
+                if (!fig.invoke(cx))
+                    return false;
+            }
+        }
+    }
+
+    //Set realm as reserverd slot on the Map
+    JS_SetReservedSlot(obj,0,realm_val);
+    //Set prototype in the same way Object.setPrototypeOf on the Map Object
+    SetPrototype(cx,obj,proto_obj);
     args.rval().setObject(*obj);
     return true;
 }

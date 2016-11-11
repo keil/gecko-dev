@@ -60,6 +60,29 @@ WeakSetObject::initClass(JSContext* cx, JSObject* obj)
     return proto;
 }
 
+JSObject*
+WeakSetObject::initRealmClass(JSContext* cx, JSObject* obj,HandleObject realm)
+{
+    Rooted<GlobalObject*> global(cx, &obj->as<GlobalObject>());
+    RootedPlainObject proto(cx, NewBuiltinClassInstance<PlainObject>(cx));
+    if (!proto)
+        return nullptr;
+
+    Rooted<JSFunction*> ctor(cx, global->createConstructor(cx, realmConstruct, ClassName(JSProto_WeakSet, cx), 0,gc::AllocKind::FUNCTION_EXTENDED));
+    ctor->setExtendedSlot(0,ObjectValue(*realm));
+
+    if (!ctor ||
+        !LinkConstructorAndPrototype(cx, ctor, proto) ||
+        !DefinePropertiesAndFunctions(cx, proto, properties, methods))
+    {
+        return nullptr;
+    }
+
+    JS_DefineProperty(cx, realm, "WeakSet", ctor,JSPROP_RESOLVING);
+
+    return proto;
+}
+
 WeakSetObject*
 WeakSetObject::create(JSContext* cx)
 {
@@ -151,6 +174,103 @@ WeakSetObject::construct(JSContext* cx, unsigned argc, Value* vp)
     args.rval().setObject(*obj);
     return true;
 }
+
+
+bool
+WeakSetObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
+{
+    // Based on our "Set" implementation instead of the more general ES6 steps.
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+
+    //The realm Object
+    RootedValue realm_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+    RootedObject realm_obj(cx,&realm_val.toObject());
+
+    //The ctor
+    RootedFunction ctor(cx,&args.callee().as<JSFunction>());
+    RootedValue proto(cx);
+    GetProperty(cx, ctor, ctor, cx->names().prototype,&proto);
+    RootedObject proto_obj(cx);
+    proto_obj = &proto.toObject();
+
+
+    Rooted<WeakSetObject*> obj(cx, WeakSetObject::create(cx));
+    if (!obj)
+        return false;
+
+    if (!args.isConstructing()) {
+        JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_FUNCTION, "WeakSet");
+        return false;
+    }
+
+    if (!args.get(0).isNullOrUndefined()) {
+        RootedObject map(cx, &obj->getReservedSlot(WEAKSET_MAP_SLOT).toObject());
+
+        RootedValue adderVal(cx);
+        if (!GetProperty(cx, obj, obj, cx->names().add, &adderVal))
+            return false;
+
+        if (!IsCallable(adderVal))
+            return ReportIsNotFunction(cx, adderVal);
+
+        JSFunction* adder;
+        bool isOriginalAdder = IsFunctionObject(adderVal, &adder) &&
+                               IsSelfHostedFunctionWithName(adder, cx->names().WeakSet_add);
+        RootedValue setVal(cx, ObjectValue(*obj));
+        FastInvokeGuard fig(cx, adderVal);
+        InvokeArgs& args2 = fig.args();
+
+        JS::ForOfIterator iter(cx);
+        if (!iter.init(args[0]))
+            return false;
+
+        RootedValue keyVal(cx);
+        RootedObject keyObject(cx);
+        RootedValue placeholder(cx, BooleanValue(true));
+        while (true) {
+            bool done;
+            if (!iter.next(&keyVal, &done))
+                return false;
+            if (done)
+                break;
+
+            if (isOriginalAdder) {
+                if (keyVal.isPrimitive()) {
+                    UniquePtr<char[], JS::FreePolicy> bytes =
+                        DecompileValueGenerator(cx, JSDVG_SEARCH_STACK, keyVal, nullptr);
+                    if (!bytes)
+                        return false;
+                    JS_ReportErrorNumber(cx, GetErrorMessage, nullptr, JSMSG_NOT_NONNULL_OBJECT, bytes.get());
+                    return false;
+                }
+
+                keyObject = &keyVal.toObject();
+                if (!SetWeakMapEntry(cx, map, keyObject, placeholder))
+                    return false;
+            } else {
+                if (!args2.init(1))
+                    return false;
+
+                args2.setCallee(adderVal);
+                args2.setThis(setVal);
+                args2[0].set(keyVal);
+
+                if (!fig.invoke(cx))
+                    return false;
+            }
+        }
+    }
+
+    //Set realm as reserverd slot on the Map
+    JS_SetReservedSlot(obj,0,realm_val);
+    //Set prototype in the same way Object.setPrototypeOf on the Map Object
+    SetPrototype(cx,obj,proto_obj);
+
+    args.rval().setObject(*obj);
+    return true;
+}
+
 
 
 JSObject*
