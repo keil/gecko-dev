@@ -1067,7 +1067,7 @@ js::obj_equals(JSContext* cx,unsigned argc,Value* vp)
     return true;
 }
 
-static bool
+bool
 js::obj_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *secret, MutableHandleValue res)
 {
     bool doRefEq = false;
