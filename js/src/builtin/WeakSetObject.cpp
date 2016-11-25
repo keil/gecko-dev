@@ -263,7 +263,8 @@ WeakSetObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
     }
 
     //Set realm as reserverd slot on the Map
-    JS_SetReservedSlot(obj,0,realm_val);
+    RootedValue map(cx,JS_GetReservedSlot(obj,0)); 
+    JS_SetReservedSlot(&map.toObject(),0,realm_val);
     //Set prototype in the same way Object.setPrototypeOf on the Map Object
     SetPrototype(cx,obj,proto_obj);
 
