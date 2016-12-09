@@ -1587,17 +1587,48 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
 bool
 js::identical(JSContext* cx, unsigned argc, Value* vp)
 {
+    //try to pass args with primitive values directly to the getidentitiyObject
+    //Otherwise unroll whatever args are object, combined with primitive values and
+    //pass it to js:strictly equals
     CallArgs args = CallArgsFromVp(argc,vp);
-    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+    RootedValue realm(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+
+    JSObject* rhs;
+    bool test;
+    RootedValue lhs_rootedVal(cx);
+    RootedValue rhs_rootedVal(cx);
 
     if(args[0].isObject()&&args[1].isObject())
     {
-        args.rval().setBoolean(GetIdentityObjectWithTokens(&args[0].toObject(),&current_val.toObject())
-     == GetIdentityObjectWithTokens(&args[1].toObject(),&current_val.toObject()));
+        RootedObject lhs(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
+        lhs_rootedVal.setObject(*lhs);
+        HandleValue lhs_handleVal = lhs_rootedVal;
+
+        RootedObject rhs(cx,GetIdentityObjectWithTokens(&args[1].toObject(),&realm.toObject()));
+        rhs_rootedVal.setObject(*rhs);
+        HandleValue rhs_handleVal = rhs_rootedVal;
+
+        js::StrictlyEqual(cx, lhs_handleVal, rhs_handleVal, &test);
+        args.rval().setBoolean(test);
+        int i = 1/0;
     }
-    else
-    {
-        bool test;
+    else if(args[0].isObject()&&(!args[1].isObject())){
+        RootedObject lhs(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
+        lhs_rootedVal.setObject(*lhs);
+        HandleValue lhs_handleVal = lhs_rootedVal;
+
+        js::StrictlyEqual(cx, lhs_handleVal, args[1], &test);
+        args.rval().setBoolean(test);
+
+    }else if(!args[0].isObject()&&(args[1].isObject())){
+        RootedObject rhs(cx,GetIdentityObjectWithTokens(&args[1].toObject(),&realm.toObject()));
+        rhs_rootedVal.setObject(*rhs);
+        HandleValue rhs_handleVal = rhs_rootedVal;
+
+        js::StrictlyEqual(cx, args[0], rhs_handleVal, &test);
+        args.rval().setBoolean(test);
+
+    } else if (!args[0].isObject()&&(!args[1].isObject())){
         js::StrictlyEqual(cx, args[0], args[1], &test);
         args.rval().setBoolean(test);
     }
