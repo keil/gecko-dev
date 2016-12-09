@@ -434,10 +434,6 @@ inline bool IsProxy(const JSObject* obj)
 
 inline bool IsTransparentProxy(const JSObject* obj)
 {
-    /*const js::Class* temp;
-    temp = GetObjectClass(obj);
-    return temp->isTransparentProxy();*/
-    const js::Class* className = GetObjectClass(obj);
     return GetObjectClass(obj)->isTransparentProxy();
 }
 
