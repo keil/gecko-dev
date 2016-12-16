@@ -640,7 +640,7 @@ WeakMap_construct(JSContext* cx, unsigned argc, Value* vp)
 
         RootedValue pairVal(cx);
         RootedObject pairObject(cx);
-        RootedValue keyVal(cx);
+        RootedValue original_keyVal(cx);
         RootedObject keyObject(cx);
         RootedValue val(cx);
         while (true) {
@@ -663,8 +663,11 @@ WeakMap_construct(JSContext* cx, unsigned argc, Value* vp)
                 return false;
 
             // Steps 12g-h.
-            if (!GetElement(cx, pairObject, pairObject, 0, &keyVal))
+            if (!GetElement(cx, pairObject, pairObject, 0, &original_keyVal))
                 return false;
+
+            RootedObject key_obj(cx,GetIdentityObject(&original_keyVal.toObject())); 
+            RootedValue keyVal(cx,ObjectValue(*key_obj));
 
             // Steps 12i-j.
             if (!GetElement(cx, pairObject, pairObject, 1, &val))
