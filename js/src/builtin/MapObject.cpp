@@ -557,6 +557,16 @@ MapObject::finalize(FreeOp* fop, JSObject* obj)
 bool
 MapObject::construct(JSContext* cx, unsigned argc, Value* vp)
 {
+    //Implement same as realmConstruct except that use identity object instead of identityobjectwithtoken
+    //Just get the test files and paste it in the test
+
+    //if(args[0].isObject())
+    //  agrs[0] = GetIdentityObjectwithToken(args[0])
+    //if(args[1].isObject())
+    //  agrs[1] = GetIdentityObjectwithToken(args[1])
+    // strictlyequal(cx,args[0],args[1],test)
+
+
     CallArgs args = CallArgsFromVp(argc, vp);
 
     if (!ThrowIfNotConstructing(cx, args, "Map"))
@@ -602,9 +612,12 @@ MapObject::construct(JSContext* cx, unsigned argc, Value* vp)
             if (!pairObj)
                 return false;
 
-            RootedValue key(cx);
-            if (!GetElement(cx, pairObj, pairObj, 0, &key))
+            RootedValue original_key(cx);
+            if (!GetElement(cx, pairObj, pairObj, 0, &original_key))
                 return false;
+
+            RootedObject key_obj(cx,GetIdentityObject(&original_key.toObject())); 
+            RootedValue key(cx,ObjectValue(*key_obj));
 
             RootedValue val(cx);
             if (!GetElement(cx, pairObj, pairObj, 1, &val))
