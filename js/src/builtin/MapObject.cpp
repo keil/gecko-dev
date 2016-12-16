@@ -1485,7 +1485,7 @@ SetObject::construct(JSContext* cx, unsigned argc, Value* vp)
         FastInvokeGuard fig(cx, adderVal);
         InvokeArgs& args2 = fig.args();
 
-        RootedValue keyVal(cx);
+        RootedValue original_keyVal(cx);
         ForOfIterator iter(cx);
         if (!iter.init(args[0]))
             return false;
@@ -1493,8 +1493,18 @@ SetObject::construct(JSContext* cx, unsigned argc, Value* vp)
         ValueSet* set = obj->getData();
         while (true) {
             bool done;
-            if (!iter.next(&keyVal, &done))
+            if (!iter.next(&original_keyVal, &done))
                 return false;
+
+            bool isObject = false;
+            if(original_keyVal.isObject())
+               isObject = true;
+             
+            RootedObject empty_obj(cx);
+            RootedObject key_obj(cx,isObject ? GetIdentityObject(&original_keyVal.toObject()):empty_obj); 
+            RootedValue keyVal(cx,isObject ? ObjectValue(*key_obj):original_keyVal);
+
+
             if (done)
                 break;
 
