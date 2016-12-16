@@ -1059,8 +1059,8 @@ js::obj_equals(JSContext* cx,unsigned argc,Value* vp)
     {
         double lval = 0;
         double rval = 0;
-        bool success_lval = JS::ToNumber(cx,args[0],&lval);
-        bool success_rval = JS::ToNumber(cx,args[1],&rval);
+        JS::ToNumber(cx,args[0],&lval);
+        JS::ToNumber(cx,args[1],&rval);
         args.rval().setBoolean(lval==rval);
     }
     return true;

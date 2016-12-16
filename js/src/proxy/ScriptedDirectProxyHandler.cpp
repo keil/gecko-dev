@@ -1610,7 +1610,6 @@ js::identical(JSContext* cx, unsigned argc, Value* vp)
 
         js::StrictlyEqual(cx, lhs_handleVal, rhs_handleVal, &test);
         args.rval().setBoolean(test);
-        int i = 1/0;
     }
     else if(args[0].isObject()&&(!args[1].isObject())){
         RootedObject lhs(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));

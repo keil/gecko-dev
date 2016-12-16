@@ -225,13 +225,22 @@ WeakSetObject::realmConstruct(JSContext* cx, unsigned argc, Value* vp)
         if (!iter.init(args[0]))
             return false;
 
-        RootedValue keyVal(cx);
+        RootedValue original_keyVal(cx);
         RootedObject keyObject(cx);
         RootedValue placeholder(cx, BooleanValue(true));
         while (true) {
             bool done;
-            if (!iter.next(&keyVal, &done))
+            if (!iter.next(&original_keyVal, &done))
                 return false;
+
+            bool isObject = false;
+            if(original_keyVal.isObject())
+                isObject = true;
+            
+            RootedObject empty_obj(cx);
+            RootedObject key_obj(cx,isObject ? GetIdentityObjectWithTokens(&original_keyVal.toObject(),realm_obj):empty_obj); 
+            RootedValue keyVal(cx,isObject ? ObjectValue(*key_obj):original_keyVal);
+
             if (done)
                 break;
 
