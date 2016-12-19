@@ -1217,7 +1217,7 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
     
     //Modifying to call the appropiate function according to the passed caller
     JSObject* proxy_;
-    if (callerName=="TransparentProxy")
+    if (strcmp(callerName,"TransparentProxy")==0)
     {
         TransparentProxyOptions options;
         options.settingClass();
@@ -1592,12 +1592,10 @@ js::identical(JSContext* cx, unsigned argc, Value* vp)
 
     if(args[0].isObject())
     {
-        //RootedObject identityObj(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
         args[0].set(ObjectValue(*GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject())));
     }
     if(args[1].isObject())
     {
-        //RootedObject identityObj(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
         args[1].set(ObjectValue(*GetIdentityObjectWithTokens(&args[1].toObject(),&realm.toObject())));
     }
 

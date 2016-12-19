@@ -1028,7 +1028,7 @@ static const JSFunctionSpec object_static_methods[] = {
     JS_FS_END
 };
 
-static bool
+bool
 js::obj_equals(JSContext* cx,unsigned argc,Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc, vp);
@@ -1066,7 +1066,7 @@ js::obj_equals(JSContext* cx,unsigned argc,Value* vp)
     return true;
 }
 
-static bool
+bool
 js::obj_capability_equals(JSContext *cx, JSObject *lhs, JSObject *rhs, JSObject *secret, MutableHandleValue res)
 {
     bool doRefEq = false;

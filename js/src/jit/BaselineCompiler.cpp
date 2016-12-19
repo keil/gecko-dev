@@ -1850,16 +1850,13 @@ BaselineCompiler::emit_JSOP_NEWOBJECT()
 bool
 NewTransparentObject(JSContext* cx,unsigned argc,Value* vp)
 {
-    // Working Call for Constructing a setting WeakMaps on Realm
     CallArgs args = CallArgsFromVp(argc,vp);
     RootedValue current_val(cx,args.thisv());
     RootedObject current_object(cx,&current_val.toObject());
 
-    //RootedFunction func_proxy(cx,JS_NewFunction(cx,CreateTransparentProxy,0,JSFUN_CONSTRUCTOR,"TransparentProxyObject"));
     RootedValue v(cx);
-    //RootedObject obj_temp(cx,JS_GetFunctionObject(func_proxy));
     RootedValue val_temp(cx,JS::ObjectValue(*current_object));
-    bool success_3 = JS::Construct(cx, val_temp,args,&v);
+    JS::Construct(cx, val_temp,args,&v);
 
     if(v.isObject())
     {
