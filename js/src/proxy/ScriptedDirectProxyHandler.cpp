@@ -1587,11 +1587,27 @@ js::equals(JSContext* cx, unsigned argc, Value* vp)
 bool
 js::identical(JSContext* cx, unsigned argc, Value* vp)
 {
-    //try to pass args with primitive values directly to the getidentitiyObject
-    //Otherwise unroll whatever args are object, combined with primitive values and
-    //pass it to js:strictly equals
     CallArgs args = CallArgsFromVp(argc,vp);
     RootedValue realm(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
+
+    if(args[0].isObject())
+    {
+        //RootedObject identityObj(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
+        args[0].set(ObjectValue(*GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject())));
+    }
+    if(args[1].isObject())
+    {
+        //RootedObject identityObj(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
+        args[1].set(ObjectValue(*GetIdentityObjectWithTokens(&args[1].toObject(),&realm.toObject())));
+    }
+
+    bool test;
+    js::StrictlyEqual(cx, args[0], args[1], &test);
+    args.rval().setBoolean(test);
+
+
+
+    /*
 
     JSObject* rhs;
     bool test;
@@ -1630,7 +1646,7 @@ js::identical(JSContext* cx, unsigned argc, Value* vp)
     } else if (!args[0].isObject()&&(!args[1].isObject())){
         js::StrictlyEqual(cx, args[0], args[1], &test);
         args.rval().setBoolean(test);
-    }
+    }*/
     return true;
 
 }
