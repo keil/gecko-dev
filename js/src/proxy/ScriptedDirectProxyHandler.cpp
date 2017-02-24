@@ -1217,8 +1217,7 @@ NewScriptedProxy(JSContext* cx, CallArgs& args, const char* callerName)
     
     //Modifying to call the appropiate function according to the passed caller
     JSObject* proxy_;
-    if (strcmp(callerName,"TransparentProxy")==0)
-    {
+    if (strcmp(callerName,"TransparentProxy")==0)    {
         TransparentProxyOptions options;
         options.settingClass();
         proxy_ = NewProxyObject(cx, &ScriptedDirectProxyHandler::singleton,
@@ -1588,65 +1587,21 @@ bool
 js::identical(JSContext* cx, unsigned argc, Value* vp)
 {
     CallArgs args = CallArgsFromVp(argc,vp);
-    RootedValue realm(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
-
-    if(args[0].isObject())
-    {
-        args[0].set(ObjectValue(*GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject())));
-    }
-    if(args[1].isObject())
-    {
-        args[1].set(ObjectValue(*GetIdentityObjectWithTokens(&args[1].toObject(),&realm.toObject())));
-    }
-
-    bool test;
-    js::StrictlyEqual(cx, args[0], args[1], &test);
-    args.rval().setBoolean(test);
-
-
-
-    /*
-
-    JSObject* rhs;
-    bool test;
-    RootedValue lhs_rootedVal(cx);
-    RootedValue rhs_rootedVal(cx);
+    RootedValue current_val(cx,args.callee().as<JSFunction>().getExtendedSlot(0));
 
     if(args[0].isObject()&&args[1].isObject())
     {
-        RootedObject lhs(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
-        lhs_rootedVal.setObject(*lhs);
-        HandleValue lhs_handleVal = lhs_rootedVal;
-
-        RootedObject rhs(cx,GetIdentityObjectWithTokens(&args[1].toObject(),&realm.toObject()));
-        rhs_rootedVal.setObject(*rhs);
-        HandleValue rhs_handleVal = rhs_rootedVal;
-
-        js::StrictlyEqual(cx, lhs_handleVal, rhs_handleVal, &test);
-        args.rval().setBoolean(test);
+        args.rval().setBoolean(GetIdentityObjectWithTokens(&args[0].toObject(),&current_val.toObject())
+     == GetIdentityObjectWithTokens(&args[1].toObject(),&current_val.toObject()));
     }
-    else if(args[0].isObject()&&(!args[1].isObject())){
-        RootedObject lhs(cx,GetIdentityObjectWithTokens(&args[0].toObject(),&realm.toObject()));
-        lhs_rootedVal.setObject(*lhs);
-        HandleValue lhs_handleVal = lhs_rootedVal;
-
-        js::StrictlyEqual(cx, lhs_handleVal, args[1], &test);
-        args.rval().setBoolean(test);
-
-    }else if(!args[0].isObject()&&(args[1].isObject())){
-        RootedObject rhs(cx,GetIdentityObjectWithTokens(&args[1].toObject(),&realm.toObject()));
-        rhs_rootedVal.setObject(*rhs);
-        HandleValue rhs_handleVal = rhs_rootedVal;
-
-        js::StrictlyEqual(cx, args[0], rhs_handleVal, &test);
-        args.rval().setBoolean(test);
-
-    } else if (!args[0].isObject()&&(!args[1].isObject())){
+    else
+    {
+        bool test;
         js::StrictlyEqual(cx, args[0], args[1], &test);
         args.rval().setBoolean(test);
-    }*/
+    }
+    
     return true;
-
 }
 
 bool

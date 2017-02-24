@@ -1288,8 +1288,8 @@ DoCompareFallback(JSContext* cx, BaselineFrame* frame, ICCompare_Fallback* stub_
             return true;
         }
 
-        if ((lhs.isObject() || lhs.isNull() || lhs.isUndefined()) &&
-            (rhs.isObject() || rhs.isNull() || rhs.isUndefined()) &&
+        if (((lhs.isObject()&&!IsTransparentProxy(&lhs.toObject()))  || lhs.isNull() || lhs.isUndefined()) &&
+            ((rhs.isObject()&&!IsTransparentProxy(&rhs.toObject())) || rhs.isNull() || rhs.isUndefined()) &&
             !stub->hasStub(ICStub::Compare_ObjectWithUndefined))
         {
             JitSpew(JitSpew_BaselineIC, "  Generating %s(Obj/Null/Undef, Obj/Null/Undef) stub",
